@@ -9,6 +9,7 @@
         <parameter name="lambdaFunctionS3BucketName" value="${lambdaFunctionS3BucketName}" />
         <parameter name="lambdaFunctionS3Key" value="${lambdaFunctionS3Key}" />
         <parameter name="createNewSupportingAccessPoint" value="{createNameSupportingAccessPoint}" />
+        <parameter name="lambdaVersion" value="{lambdaVersion}" />
         <groups>
             <run>
                 <include name="setup" />
