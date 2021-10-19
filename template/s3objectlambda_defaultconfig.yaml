@@ -1,0 +1,115 @@
+Description: >
+  Simplify and accelerate getting started with S3 Object Lambda using this CloudFormation template.
+  This template automatically creates relevant resources, configures necessary policies,
+  and sets up a Lambda function tailored to integrate with S3 Object Lambda for you.
+  It makes it easier to implement AWS recommended best practices, improve your security posture,
+  and minimize any setup related errors.
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: >
+      An Amazon S3 bucket name to use with S3 Object Lambda. The bucket should exist in the same AWS account and
+      AWS Region that will deploy this template. The bucket should also delegate access control to access points.
+
+  ObjectLambdaAccessPointName:
+    Type: String
+    Description: Name of the Amazon S3 Object Lambda Access Point.
+
+  CreateNewSupportingAccessPoint:
+    Type: String
+    Description: Flag that indicates a new supporting Access Point should be created.
+    Default: false
+    AllowedValues: [true, false]
+
+  SupportingAccessPointName:
+    Type: String
+    Description: Name of the Amazon S3 Access Point associated with the S3 bucket passed in the S3BucketName parameter.
+
+  LambdaFunctionS3BucketName:
+    Type: String
+    Description: >
+      Name of the Amazon S3 bucket where you have uploaded the Lambda function deployment package. The bucket
+      should be in the same AWS Region as your function, but can be in a different AWS account.
+
+  LambdaFunctionS3Key:
+    Type: String
+    Description: The Amazon S3 key of the Lambda function deployment package.
+
+  LambdaFunctionS3ObjectVersion:
+    Type: String
+    Default: "null" # When an object is first uploaded, it does not have a versionId.
+    Description: The version number of the Lambda function deployment package object stored in Amazon S3.
+
+  LambdaFunctionPayload:
+    Type: String
+    Default: ""
+    Description: A static payload that provides supplemental data to the Lambda function used to transform objects.
+
+Conditions:
+  ShouldCreateNewSupportingAccessPoint: !Equals [!Ref CreateNewSupportingAccessPoint, true]
+
+Resources:
+  ObjectLambdaAccessPoint:
+    Type: AWS::S3ObjectLambda::AccessPoint
+    Properties:
+      Name:
+        Ref: ObjectLambdaAccessPointName
+      ObjectLambdaConfiguration:
+        # If creating a new Supporting Access Point, get the Arn from the new resource.
+        # Else construct the Arn using the SupportingAccessPointName input parameter.
+        SupportingAccessPoint:
+          !If
+            - ShouldCreateNewSupportingAccessPoint
+            - !GetAtt SupportingAccessPoint.Arn
+            - !Sub "arn:${AWS::Partition}:s3:${AWS::Region}:${AWS::AccountId}:accesspoint/${SupportingAccessPointName}"
+        AllowedFeatures:
+          - GetObject-Range
+          - GetObject-PartNumber
+        TransformationConfigurations:
+          - Actions: [ GetObject ]
+            ContentTransformation:
+              AwsLambda:
+                FunctionArn: !GetAtt LambdaFunction.Arn
+                FunctionPayload:
+                  Ref: LambdaFunctionPayload
+
+  SupportingAccessPoint:
+    Type: AWS::S3::AccessPoint
+    Condition: ShouldCreateNewSupportingAccessPoint
+    Properties:
+      Bucket:
+        Ref: S3BucketName
+      Name:
+        Ref: SupportingAccessPointName
+
+  LambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      ManagedPolicyArns: ["arn:aws:iam::aws:policy/service-role/AmazonS3ObjectLambdaExecutionRolePolicy"]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: LambdaFunctionS3BucketName
+        S3Key:
+          Ref: LambdaFunctionS3Key
+        S3ObjectVersion:
+          Ref: LambdaFunctionS3ObjectVersion
+      Handler: dist/src/s3objectlambda.handler
+      MemorySize: 1024
+      Timeout: 60
+      PackageType: Zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: nodejs14.x

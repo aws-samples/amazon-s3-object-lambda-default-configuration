@@ -1,0 +1,73 @@
+name: Default Config Integration Test
+on: [push]
+#  issue_comment:
+#    types: [created]
+
+jobs:
+  IntegrationPreCheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Precheck
+        if: github.event.issue.body != "runIntegration"
+        uses: actions/github-script@v5
+        with:
+          script: |
+            core.setFailed('Wait for admin to trigger Integration Test')
+
+  IntegrationTest:
+    runs-on: ubuntu-latest
+    needs: [IntegrationPreCheck]
+    steps:
+      - name: Github API Request
+        id: request
+        uses: octokit/request-action@v2.0.0
+        with:
+          route: ${{ github.event.issue.pull_request.url }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout PR Branch
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ fromJson(steps.request.outputs.data).head.repo.full_name }}
+          ref: ${{ steps.pr_data.outputs.branch }}
+      #- uses: actions/checkout@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+#          role-to-assume: arn:aws:iam::709260266534:role/Admin
+#          role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
+#          role-duration-seconds: 1200
+#          role-session-name: MySessionName
+      - name: Generate a Template Key name
+        run: echo TEMPLATE_KEY=template_$(openssl rand -hex 8).yaml >> $GITHUB_ENV
+      - name: Template Upload to S3
+        run: aws s3 cp ./template/s3objectlambda_defaultconfig.yaml s3://default-config-template/${{env.TEMPLATE_KEY}}
+      - name: Set up NodeJS 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+      - name: Generate a random name for Lambda function
+        run: echo LAMBDA_NODE_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
+      - name: Set up Node Lambda Function and upload to S3
+        working-directory: functions/node_js_14.x
+        run: |
+          npm install
+          npm run-script build
+          mkdir -p release
+          npm run-script package
+          echo LAMBDA_VERSION=$(aws s3api put-object --bucket default-config-template --key ${{env.LAMBDA_NODE_KEY}} --body release/s3objectlambda_deployment_package.zip --output json | jq -r '.VersionId' ) >> $GITHUB_ENV
+      - name: Set up JDK 16
+        uses: actions/setup-java@v2
+        with:
+          java-version: '16'
+          distribution: 'adopt'
+#          cache: 'maven'
+      - name: Build with Maven and run test
+        run: mvn test -f tests/pom.xml -Dregion=eu-west-1 -DtemplateUrl=https://default-config-template.s3.eu-west-1.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=default-config-template -DlambdaFunctionS3BucketName=default-config-template -DlambdaFunctionS3Key=${{env.LAMBDA_NODE_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_VERSION}}
+      - name: Publish Test Report
+        if: ${{ always() }}
+        uses: scacap/action-surefire-report@v1

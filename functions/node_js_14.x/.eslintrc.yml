@@ -1,0 +1,18 @@
+env:
+  browser: true
+  es2021: true
+extends:
+  - standard-with-typescript
+parser: '@typescript-eslint/parser'
+parserOptions:
+  ecmaVersion: 2020
+  sourceType: module
+  project: ./tsconfig.json
+plugins:
+  - '@typescript-eslint'
+  - 'autofix'
+rules: {
+  autofix/no-debugger: 'error',
+  '@typescript-eslint/return-await': 'off',
+  no-return-await: 'error'
+}
