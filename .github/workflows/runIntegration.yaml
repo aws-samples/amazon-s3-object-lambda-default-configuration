@@ -45,8 +45,8 @@ jobs:
 #          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
 #          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::709260266534:role/Admin
-          role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
+          role-to-assume: arn:aws:iam::709260266534:role/GithubOIDC-Role-1I6OM883IKQHZ
+#          role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
           role-duration-seconds: 1200
           role-session-name: MySessionName
       - name: Generate a Template Key name
