@@ -83,6 +83,7 @@ jobs:
         if: ${{ always() }}
         uses: actions-ecosystem/action-remove-labels@v1
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           labels: safe to run test
       - name: Publish Test Report
         if: ${{ always() }}
