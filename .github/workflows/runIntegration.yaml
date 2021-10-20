@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Precheck
-        if: ${{!contains(github.event.issue.body, 'runIntegration')}}
+        if: ${{!contains(github.event.comment.body, 'runIntegration')}}
         uses: actions/github-script@v5
         with:
           script: |
