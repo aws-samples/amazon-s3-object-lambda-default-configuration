@@ -4,6 +4,7 @@ import static com.amazon.s3objectlambda.defaultconfig.KeyConstants.*;
 
 import org.testng.Assert;
 import org.testng.ITestContext;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.services.cloudformation.model.DeleteStackRequest;
@@ -26,5 +27,11 @@ public class Cleanup {
         DescribeStacksRequest describeStacksRequest = DescribeStacksRequest.builder().stackName(stackName).build();
         var waiterResponse = waiter.waitUntilStackDeleteComplete(describeStacksRequest);
         Assert.assertFalse(waiterResponse.matched().response().isPresent());
+    }
+
+    @AfterClass()
+    @Test(description= "Suppose to fail")
+    public void falseTest(){
+        Assert.fail();
     }
 }
