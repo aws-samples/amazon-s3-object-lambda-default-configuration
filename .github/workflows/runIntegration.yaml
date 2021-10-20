@@ -8,15 +8,12 @@ jobs:
   IntegrationPreCheck:
     runs-on: ubuntu-latest
     steps:
-#      - name: check label
-#        if: ${{ github.event.label.name == 'bug' }}
-
-  #      - name: Precheck
-#        if: ${{!contains(github.event.comment.body, 'runIntegration')}}
-#        uses: actions/github-script@v5
-#        with:
-#          script: |
-#            core.setFailed('Wait for admin to trigger Integration Test')
+      - name: check label
+        if: ${{!contains(github.event.pull_request.labels.*.name, 'safe to run test')}}
+        uses: actions/github-script@v5
+        with:
+          script: |
+            core.setFailed('Integration Test has not been run')
       - name: testing
         run: echo 'hello'
 
@@ -77,6 +74,16 @@ jobs:
 #          cache: 'maven'
       - name: Build with Maven and run test
         run: mvn test -f tests/pom.xml -Dregion=eu-west-1 -DtemplateUrl=https://default-config-template.s3.eu-west-1.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=default-config-template -DlambdaFunctionS3BucketName=default-config-template -DlambdaFunctionS3Key=${{env.LAMBDA_NODE_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_VERSION}}
+      - name: Check Test Result
+        if: ${{ !failure() }}
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: test pass
+      - name: Check Test Result
+        if: ${{ always() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: safe to run test
       - name: Publish Test Report
         if: ${{ always() }}
         uses: scacap/action-surefire-report@v1

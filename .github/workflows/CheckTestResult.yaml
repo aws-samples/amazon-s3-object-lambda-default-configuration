@@ -1,0 +1,15 @@
+name: Check Test Result
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  IntegrationPreCheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: verify test label
+        if: ${{!contains(github.event.pull_request.labels.*.name, 'test pass')}}
+        uses: actions/github-script@v5
+        with:
+          script: |
+            core.setFailed('Integration Test has no pass')
