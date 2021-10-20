@@ -5,21 +5,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  IntegrationPreCheck:
-    runs-on: ubuntu-latest
-    steps:
-      - name: check label
-        if: ${{!contains(github.event.pull_request.labels.*.name, 'safe to run test')}}
-        uses: actions/github-script@v5
-        with:
-          script: |
-            core.setFailed('Integration Test has not been run')
-      - name: testing
-        run: echo 'hello'
+#  IntegrationPreCheck:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: check label
+#        if: ${{!contains(github.event.pull_request.labels.*.name, 'safe to run test')}}
+#        uses: actions/github-script@v5
+#        with:
+#          script: |
+#            core.setFailed('Integration Test has not been run')
+#      - name: testing
+#        run: echo 'hello'
 
   IntegrationTest:
     runs-on: ubuntu-latest
-    needs: [IntegrationPreCheck]
+#    needs: [IntegrationPreCheck]
+    if: ${{contains(github.event.pull_request.labels.*.name, 'safe to run test')}}
     permissions:
       id-token: write
       contents: read
