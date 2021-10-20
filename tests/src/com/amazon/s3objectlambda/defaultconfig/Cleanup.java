@@ -32,6 +32,6 @@ public class Cleanup {
     @AfterClass()
     @Test(description= "Suppose to fail")
     public void falseTest(){
-        Assert.assertEquals(true,fasle);
+        Assert.assertEquals(true,false);
     }
 }
