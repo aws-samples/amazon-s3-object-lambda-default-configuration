@@ -1,26 +1,22 @@
 name: Default Config Integration Test
 on:
-
-  pull_request_review:
-    types: [submitted]
-
-  pull_request: 
-    types: [ opened ]
-    
-  issue_comment:
-    types: [created]
+  pull_request:
+    types: [labeled]
   workflow_dispatch:
 
 jobs:
   IntegrationPreCheck:
     runs-on: ubuntu-latest
     steps:
-      - name: Precheck
-        if: ${{!contains(github.event.comment.body, 'runIntegration')}}
-        uses: actions/github-script@v5
-        with:
-          script: |
-            core.setFailed('Wait for admin to trigger Integration Test')
+#      - name: check label
+#        if: ${{ github.event.label.name == 'bug' }}
+
+  #      - name: Precheck
+#        if: ${{!contains(github.event.comment.body, 'runIntegration')}}
+#        uses: actions/github-script@v5
+#        with:
+#          script: |
+#            core.setFailed('Wait for admin to trigger Integration Test')
       - name: testing
         run: echo 'hello'
 
@@ -31,20 +27,20 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: Github API Request
-        id: request
-        uses: octokit/request-action@v2.0.0
-        with:
-          route: ${{ github.event.issue.pull_request.url }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Checkout PR Branch
-        uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ fromJson(steps.request.outputs.data).head.repo.full_name }}
-          ref: ${{ steps.pr_data.outputs.branch }}
-#      - uses: actions/checkout@v2
+#      - name: Github API Request
+#        id: request
+#        uses: octokit/request-action@v2.0.0
+#        with:
+#          route: ${{ github.event.issue.pull_request.url }}
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Checkout PR Branch
+#        uses: actions/checkout@v2
+#        with:
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          repository: ${{ fromJson(steps.request.outputs.data).head.repo.full_name }}
+#          ref: ${{ steps.pr_data.outputs.branch }}
+      - uses: actions/checkout@v2
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
