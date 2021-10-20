@@ -24,7 +24,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-      pull requests: write
+      pull-requests: write
     steps:
 #      - name: Github API Request
 #        id: request
