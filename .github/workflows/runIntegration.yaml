@@ -1,7 +1,12 @@
 name: Default Config Integration Test
 on:
+
   pull_request_review:
     types: [submitted]
+
+  pull_request: 
+    types: [ open ]
+    
   issue_comment:
     types: [created]
   workflow_dispatch:
