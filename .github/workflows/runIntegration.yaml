@@ -79,13 +79,16 @@ jobs:
         if: ${{ !failure() }}
         uses: actions-ecosystem/action-add-labels@v1
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: test pass
       - name: Check Test Result
         if: ${{ always() }}
         uses: actions-ecosystem/action-remove-labels@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: safe to run test
       - name: Publish Test Report
         if: ${{ always() }}
         uses: scacap/action-surefire-report@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
