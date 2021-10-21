@@ -5,21 +5,8 @@ on:
   workflow_dispatch:
 
 jobs:
-#  IntegrationPreCheck:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: check label
-#        if: ${{!contains(github.event.pull_request.labels.*.name, 'safe to run test')}}
-#        uses: actions/github-script@v5
-#        with:
-#          script: |
-#            core.setFailed('Integration Test has not been run')
-#      - name: testing
-#        run: echo 'hello'
-
   IntegrationTest:
     runs-on: ubuntu-latest
-#    needs: [IntegrationPreCheck]
     if: ${{contains(github.event.pull_request.labels.*.name, 'safe to run test')}}
     permissions:
       id-token: write
@@ -27,31 +14,16 @@ jobs:
       pull-requests: write
       statuses: write
     steps:
-#      - name: Github API Request
-#        id: request
-#        uses: octokit/request-action@v2.0.0
-#        with:
-#          route: ${{ github.event.issue.pull_request.url }}
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      - name: Checkout PR Branch
-#        uses: actions/checkout@v2
-#        with:
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#          repository: ${{ fromJson(steps.request.outputs.data).head.repo.full_name }}
-#          ref: ${{ steps.pr_data.outputs.branch }}
-      - uses: actions/checkout@v2
+      - name: Check out pull request code base
+        uses: actions/checkout@v2
         with:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
           role-to-assume: arn:aws:iam::709260266534:role/GithubOIDC-Role-1I6OM883IKQHZ
-#          role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
           role-duration-seconds: 1200
           role-session-name: MySessionName
       - name: Generate a Template Key name
@@ -84,16 +56,13 @@ jobs:
         if: ${{ !failure() }}
         uses: actions-ecosystem/action-add-labels@v1
         with:
-#          github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: test pass
       - name: Check Test Result
         if: ${{ always() }}
         uses: actions-ecosystem/action-remove-labels@v1
         with:
-#          github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: safe to run test
-      - name: Publish Test Report
-        if: ${{ always() }}
-        uses: scacap/action-surefire-report@v1
-#        with:
-#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Publish Test Report
+#        if: ${{ always() }}
+#        uses: scacap/action-surefire-report@v1
+
