@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<project name="S3ObjectLambdaDefaultConfigTests-1.0" basedir="." default="release" xmlns:ht="happytrails">
+
+  <!-- This is provided solely so that this package will build
+       out-of-the-box.  Feel free to remove this as soon as you add actual
+       content under the src/ and tst/ directories. -->
+  <property name="allow.empty.sources.dir" value="true" />
+
+  <!--
+     Delete this line and remove checkstyle-config.xml to pick up HappierTrails
+     more strict checkstyle ruleset.
+ -->
+  <property name="checkstyle.configuration.file" location="checkstyle-config.xml"/>
+  <property name="checkstyle.suppression.filter" location="checkstyle-suppression.xml"/>
+
+  <property name="ht.test.implementation" value="testng-test-impl" />
+  <import file="${happytrails.root}/happytrails.xml"/>
+
+  <!-- Define HappierTrails property overrides here -->
+  <property name="tests.additional.jvmargs" value=""/>
+  <ht:import file="happier-trails.xml"/>
+  <ht:import file="testng-test-impl.xml"/>
+  <!-- For more information on targets and how to override them, see
+       https://w.amazon.com/index.php/BrazilBuildSystem/HappierTrails/Targets -->
+
+  <target name="testng-run" depends="build">
+    <testng delegateCommandSystemProperties="true" verbose="10" dumpCommand="true" haltonfailure="true" haltonskipped="true" outputdir="${bp:package-build-root}brazil-integration-tests" useDefaultListeners="true">
+
+      <env key="CORAL_CONFIG_PATH" value="${bp:run.coralconfig}"/>
+      <jvmarg line="-Duser.timezone=UTC -Dfile.encoding=UTF-8 -Dlog4j.configuration=log4j.properties"/>
+      <jvmarg line="-Dregion=${region}" />
+      <jvmarg line="-DtemplateUrl=${templateUrl}" />
+      <jvmarg line="-Ds3BucketName=${s3BucketName}" />
+      <jvmarg line="-DlambdaFunctionS3BucketName=${lambdaFunctionS3BucketName}" />
+      <jvmarg line="-DlambdaFunctionS3Key=${lambdaFunctionS3Key}" />
+      <jvmarg line="-DcreateNewSupportingAccessPoint=${createNewSupportingAccessPoint}" />
+
+      <classpath>
+        <pathelement path="${bp:build.classpath}"/>
+        <pathelement path="${bp:package-build-root}"/>
+        <pathelement path="${bp:run.classpath}"/>
+        <pathelement path="${classes.dir}"/>
+      </classpath>
+      <sysproperty key="root" value="${bp:package-build-root}"/>
+
+      <xmlfileset file="${testng-xml}"/>
+    </testng>
+  </target>
+  <target name="testng-run-development">
+    <property name="testng-xml" value="testng.xml"/>
+    <ant target="testng-run"/>
+  </target>
+</project>

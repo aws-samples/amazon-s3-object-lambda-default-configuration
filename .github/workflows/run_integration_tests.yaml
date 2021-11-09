@@ -1,0 +1,69 @@
+name: Default Config Integration Test
+on:
+  pull_request_target:
+    types: [labeled]
+  workflow_dispatch:
+
+jobs:
+  IntegrationTest:
+    runs-on: ubuntu-latest
+    if: ${{contains(github.event.pull_request.labels.*.name, 'Manually Reviewed')}}
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: Check out pull request code base
+        uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.ref}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ASSUME_ROLE }}
+          role-duration-seconds: 1200
+          role-session-name: GithubActionIntegrationTest
+      - name: Generate a Template Key name
+        run: echo TEMPLATE_KEY=template_$(openssl rand -hex 8).yaml >> $GITHUB_ENV
+      - name: Template Upload to S3
+        run: aws s3 cp ./template/s3objectlambda_defaultconfig.yaml s3://${{ secrets.AWS_BUCKET_NAME }}/${{env.TEMPLATE_KEY}}
+      - name: Set up NodeJS 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+      - name: Generate a random name for Lambda function
+        run: echo LAMBDA_NODE_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
+      - name: Set up Node Lambda Function and upload to S3
+        working-directory: functions/node_js_14.x
+        run: |
+          npm install
+          npm run-script build
+          mkdir -p release
+          npm run-script package
+          echo LAMBDA_VERSION=$(aws s3api put-object --bucket ${{ secrets.AWS_BUCKET_NAME }} --key ${{env.LAMBDA_NODE_KEY}} --body release/s3objectlambda_deployment_package.zip --output json | jq -r '.VersionId' ) >> $GITHUB_ENV
+      - name: Set up JDK 16
+        uses: actions/setup-java@v2
+        with:
+          java-version: '16'
+          distribution: 'adopt'
+      - name: Build with Maven and run test
+        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_NODE_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_VERSION}}
+      - name: Check Test Result Pass
+        if: ${{ !failure() }}
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: Test Successful
+      - name: Check Test Result Fail
+        if: ${{ failure() }}
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: Test Failed
+      - name: Removed Reviewed Label
+        if: ${{ always() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: Manually Reviewed
+

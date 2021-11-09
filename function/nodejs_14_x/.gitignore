@@ -1,0 +1,6 @@
+*.iml
+node_modules/
+build
+dist/
+s3objectlambda.js
+release/s3objectlambda_deployment_package.zip
