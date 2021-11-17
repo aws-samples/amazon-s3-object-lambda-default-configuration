@@ -1,0 +1,42 @@
+{
+  "name": "@amzn/s3object-lambda-default-config-nodejs-function",
+  "version": "0.1.0",
+  "description": "",
+  "author": "",
+  "license": "MIT-0",
+  "repository": "ssh://git.amazon.com/pkg/S3ObjectLambdaDefaultConfigNodejsFunction",
+  "homepage": "https://code.amazon.com/packages/S3ObjectLambdaDefaultConfigNodejsFunction",
+  "scripts": {
+    "clean": "rm -rf node_modules s3objectlambda.js release/s3objectlambda_deployment_package.zip",
+    "test": "jest",
+    "build": "./node_modules/.bin/esbuild src/s3objectlambda.ts --bundle --outfile=s3objectlambda.js --platform=node && eslint 'src/**/*.ts' && jest",
+    "package": "zip -ur release/s3objectlambda_deployment_package.zip s3objectlambda.js",
+    "lint": "eslint 'src/**/*.ts'"
+  },
+  "files": [],
+  "npm-pretty-much": {
+    "runTest": "never",
+    "ciBuild": "always"
+  },
+  "dependencies": {
+    "aws-sdk": "2.973.0",
+    "node-fetch": "3.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "27.0.0",
+    "@types/node": "16.7.1",
+    "@typescript-eslint/eslint-plugin": "4.30.0",
+    "@typescript-eslint/parser": "4.30.0",
+    "esbuild": "^0.12.25",
+    "eslint": "7.32.0",
+    "eslint-config-standard": "16.0.3",
+    "eslint-config-standard-with-typescript": "21.0.1",
+    "eslint-plugin-autofix": "1.0.5",
+    "eslint-plugin-import": "2.24.2",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-promise": "5.1.0",
+    "jest": "27.0.0",
+    "ts-jest": "27.0.0",
+    "typescript": "4.3.5"
+  }
+}
