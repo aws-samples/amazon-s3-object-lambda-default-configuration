@@ -37,7 +37,7 @@ jobs:
       - name: Generate a random name for Lambda function
         run: echo LAMBDA_NODE_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
       - name: Set up Node Lambda Function and upload to S3
-        working-directory: functions/node_js_14.x
+        working-directory: function/nodejs_14_x
         run: |
           npm install
           npm run-script build
