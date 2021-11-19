@@ -23,6 +23,8 @@
     "node-fetch": "3.0.0"
   },
   "devDependencies": {
+    "ansi-regex": "^5.0.1",
+    "tmpl": "^1.0.5",
     "@types/jest": "27.0.0",
     "@types/node": "16.7.1",
     "@typescript-eslint/eslint-plugin": "4.30.0",
