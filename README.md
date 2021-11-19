@@ -115,7 +115,29 @@ As you implement your transformation function, you can test each iteration of yo
 
 1. Upload the new deployment package under the same object key `LambdaFunctionS3Key` in your Amazon S3 bucket `LambdaFunctionS3BucketName`. Once your upload is complete, you will see a new `versionId` for your latest version of the deployment package.
 2. Pass the new `versionId` as the `LambdaFunctionS3ObjectVersion` parameter and re-deploy your AWS CloudFormation template. This will update the AWS Lambda function with your transformation code changes.
-3. Use the Amazon S3 Object Lambda Access Point to get objects from your Amazon S3 bucket. The objects will now be transformed according to your transformation function in the AWS Lambda function.
+3. Use the Amazon S3 Object Lambda Access Point to get objects from your Amazon S3 bucket. The objects will now be transformed according to your transformation function in the AWS Lambda function. 
+You can make a GetObject request by passing the Object Lambda Access Point ARN as the Bucket parameter.
+
+```
+aws s3api get-object --bucket <object-lambda-access-point-arn> --key <object-key> <outfile>
+```
+
+### Testing your update
+
+You can test your code changes by running the integration test suite. The test suite will create an Object Lambda Access Point
+ using the CloudFormation template and execute test cases to validate your Object Lambda Access Point works as expected.
+
+1. Install [Apache Maven](https://maven.apache.org/install.html) and [Java 16](https://docs.oracle.com/en/java/javase/16/).
+2. Choose an S3 bucket in your AWS account that has versioning enabled. You will use this bucket to host the resources and run the tests.
+3. Upload template to the versioned S3 bucket. You will need the S3 object key to run the tests.
+4. Upload the Lambda function deployment package under `release/s3objectlambda_deployment_package.zip` to the versioned S3 bucket. You will need the S3 object key and version ID of the deployment package to run the tests.
+5. Run the tests using Maven from the project root directory `amazon-s3-object-lambda-default-configuration`. Replace the below parameters with actual values.
+
+```
+mvn test -f tests/pom.xml -Dregion=${{AWS_REGION}} -DtemplateUrl=https://${{AWS_BUCKET_NAME}}.s3.${{AWS_REGION}}.amazonaws.com/${{TEMPLATE_KEY}} \
+-Ds3BucketName=${{AWS_BUCKET_NAME}} -DlambdaFunctionS3BucketName=${{AWS_BUCKET_NAME}} -DlambdaFunctionS3Key=${{LAMBDA_NODE_KEY}}
+ -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{LAMBDA_VERSION}}
+```
 
 # Contributing
 
