@@ -1,7 +1,7 @@
 import ErrorCode from '../error/error_code';
 import RangeResponse from './range_response';
 
-const PART_SIZE = 10240; // 10 KB
+const PART_SIZE = 5242880; // 5 MB
 
 export default function mapPartNumber (partNumber: string, transformedObject: Buffer): RangeResponse {
   const objectLength = transformedObject.byteLength;
