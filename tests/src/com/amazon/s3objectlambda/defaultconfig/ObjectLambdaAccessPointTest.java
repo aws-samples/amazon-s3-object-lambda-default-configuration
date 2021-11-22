@@ -25,9 +25,9 @@ import java.util.UUID;
 @Test(groups = "accessPoint", dependsOnGroups = {"setup"})
 public class ObjectLambdaAccessPointTest {
 
-    private static final int DEFAULT_PART_SIZE = 10240;
+    private static final int DEFAULT_PART_SIZE = 5242880; // 5 MB
     private static final String DUMMY_ACCOUNT_ID = "111122223333";
-    private final String data = "1234567890".repeat(1024 * 2);
+    private final String data = "1234567890".repeat(DEFAULT_PART_SIZE);
     private S3Client s3Client;
     private String olAccessPointName;
     private String olapArn;
@@ -155,7 +155,7 @@ public class ObjectLambdaAccessPointTest {
 
     @Test(description = "Calling OLAP with partnumber header to obtain part of the object, "
             + "verify if the status code is 200 and the content of the part object is correct."
-            + "Default size for part is 10240")
+            + "Default size for part is " + DEFAULT_PART_SIZE)
     public void partNumberWorks() {
         // setup
         String objectKey = UUID.randomUUID().toString();
