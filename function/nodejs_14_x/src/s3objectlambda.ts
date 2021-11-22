@@ -1,4 +1,4 @@
-import type { S3ObjectLambdaEvent } from './s3objectlambda_event';
+import type { S3ObjectLambdaEvent } from './s3objectlambda_event.types';
 
 import handleGetObjectRequest from './handler/get_object_handler';
 import S3 from 'aws-sdk/clients/s3';

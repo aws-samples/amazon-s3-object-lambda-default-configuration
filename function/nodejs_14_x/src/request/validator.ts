@@ -1,5 +1,5 @@
 import { getPartNumber, getRange } from './utils';
-import { UserRequest } from '../s3objectlambda_event';
+import { UserRequest } from '../s3objectlambda_event.types';
 
 /**
  * Responsible for validating the user request. Returns a string error message if there are errors or null if valid.

@@ -1,7 +1,7 @@
 /**
  * Contains utility methods for Request handling, such as extracting query parameters.
  */
-import { UserRequest } from '../s3objectlambda_event';
+import { UserRequest } from '../s3objectlambda_event.types';
 
 const RANGE = 'Range';
 const PART_NUMBER = 'partNumber';
