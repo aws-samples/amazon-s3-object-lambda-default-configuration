@@ -1,4 +1,4 @@
-import { GetObjectContext, UserRequest } from '../s3objectlambda_event';
+import { GetObjectContext, UserRequest } from '../s3objectlambda_event.types';
 import { getPartNumber, getRange } from '../request/utils';
 
 import { AWSError } from 'aws-sdk/lib/error';
@@ -7,7 +7,7 @@ import fetch from 'node-fetch';
 import { getErrorResponse, getResponseForS3Errors } from '../error/error_response';
 import mapPartNumber from '../response/part_number_mapper';
 import mapRange from '../response/range_mapper';
-import RangeResponse from '../response/range_response';
+import RangeResponse from '../response/range_response.types';
 import S3 from 'aws-sdk/clients/s3';
 import transformObject from '../transform/s3objectlambda_transformer';
 import validate from '../request/validator';
@@ -59,11 +59,11 @@ Promise<PromiseResult<{}, AWSError> | null> {
   // Send the transformed object or error back to Amazon S3 Object Lambda
   if (transformedObject.hasError) {
     return getErrorResponse(s3Client, requestContext, ErrorCode.INVALID_REQUEST, String(transformedObject.errorMessage), responseHeaders);
-  } else if (transformedObject.object !== undefined) {
-    return writeResponse(s3Client, requestContext, transformedObject.object, responseHeaders);
-  } else {
-    return null;
   }
+  if (transformedObject.object !== undefined) {
+    return writeResponse(s3Client, requestContext, transformedObject.object, responseHeaders);
+  }
+  return null;
 }
 
 /**
@@ -126,10 +126,10 @@ function applyRangeOrPartNumber (transformedObject: Buffer, userRequest: UserReq
 
   if (range != null) {
     return mapRange(range, transformedObject);
-  } else if (partNumber != null) {
-    return mapPartNumber(partNumber, transformedObject);
-  } else {
-    // The request was made for the whole object, so return as is.
-    return { object: transformedObject, hasError: false };
   }
+  if (partNumber != null) {
+    return mapPartNumber(partNumber, transformedObject);
+  }
+  // The request was made for the whole object, so return as is.
+  return { object: transformedObject, hasError: false };
 }

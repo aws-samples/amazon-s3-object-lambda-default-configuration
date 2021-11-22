@@ -1,6 +1,6 @@
 import { AWSError } from 'aws-sdk';
 import ErrorCode from './error_code';
-import { GetObjectContext } from '../s3objectlambda_event';
+import { GetObjectContext } from '../s3objectlambda_event.types';
 import S3 from 'aws-sdk/clients/s3';
 import { PromiseResult } from 'aws-sdk/lib/request';
 

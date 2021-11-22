@@ -1,5 +1,5 @@
 import ErrorCode from '../error/error_code';
-import RangeResponse from './range_response';
+import RangeResponse from './range_response.types';
 
 /**
  * Handles range requests by applying the range to the transformed object. Supported range headers are:
@@ -24,25 +24,27 @@ export default function mapRange (rangeHeaderValue: string, transformedObject: B
     return getRangeInvalidResponse(rangeHeaderValue);
   }
 
-  if (matchArray[1].toLowerCase() !== SUPPORTED_UNIT) {
+  const [, rangeUnitStr, rangeStartStr, rangeEndStr] = matchArray;
+  let rangeStart: number;
+  let rangeEnd: number;
+
+  if (rangeUnitStr.toLowerCase() !== SUPPORTED_UNIT) {
     return getRangeInvalidResponse(rangeHeaderValue,
             `Cannot process units other than ${SUPPORTED_UNIT}`);
   }
 
-  const rangeStartStr = matchArray[2];
-  const rangeEndStr = matchArray[3];
-  let rangeStart: number;
-  let rangeEnd: number;
+  const isRangeStartPresent = rangeStartStr !== undefined;
+  const isRangeEndPresent = rangeEndStr !== undefined;
 
-  if (rangeStartStr === undefined && rangeEndStr === undefined) { // At least one should be present
+  if (!isRangeStartPresent && !isRangeEndPresent) { // At least one should be present
     return getRangeInvalidResponse(rangeHeaderValue);
-  } else if (rangeStartStr === undefined) {
+  } else if (!isRangeStartPresent) {
     /* Range request was of the form <unit>=-<suffix-length> so we return the last `suffix-length` bytes. */
 
     const suffixLength = Number(rangeEndStr);
     rangeEnd = transformedObject.byteLength;
     rangeStart = rangeEnd - suffixLength;
-  } else if (rangeEndStr === undefined) {
+  } else if (!isRangeEndPresent) {
     /* Range request was of the form <unit>=<range-start>- so we return from range-start to the end
         of the object. */
     rangeStart = Number(rangeStartStr);
@@ -54,7 +56,8 @@ export default function mapRange (rangeHeaderValue: string, transformedObject: B
     rangeEnd = Math.min(transformedObject.byteLength, expectedLength); // Should not exceed object length
   }
 
-  if (rangeStart > rangeEnd || rangeStart < 0) {
+  const isRangeValid = rangeStart >= 0 && rangeStart <= rangeEnd;
+  if (!isRangeValid) {
     return getRangeInvalidResponse(rangeHeaderValue);
   }
 
@@ -62,9 +65,7 @@ export default function mapRange (rangeHeaderValue: string, transformedObject: B
 }
 
 function getRangeInvalidResponse (rangeHeaderValue: string, errorMessage?: string): RangeResponse {
-  const message = (errorMessage === null || errorMessage === undefined)
-    ? `Cannot process specified range: ${rangeHeaderValue}`
-    : errorMessage;
+  const message = (errorMessage === undefined) ? `Cannot process specified range: ${rangeHeaderValue}` : errorMessage;
 
   return {
     hasError: true,

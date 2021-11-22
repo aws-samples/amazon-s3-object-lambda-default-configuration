@@ -1,4 +1,4 @@
-import { UserRequest } from '../../src/s3objectlambda_event'
+import { UserRequest } from '../../src/s3objectlambda_event.types'
 import { getPartNumber, getRange } from '../../src/request/utils'
 
 test('Get PartNumber works', () => {

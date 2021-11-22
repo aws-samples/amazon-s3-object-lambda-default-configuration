@@ -1,5 +1,5 @@
 import ErrorCode from '../error/error_code';
-import RangeResponse from './range_response';
+import RangeResponse from './range_response.types';
 
 const PART_SIZE = 5242880; // 5 MB
 
