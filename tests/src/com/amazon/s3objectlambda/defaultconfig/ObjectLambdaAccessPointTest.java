@@ -27,7 +27,8 @@ public class ObjectLambdaAccessPointTest {
 
     private static final int DEFAULT_PART_SIZE = 5242880; // 5 MB
     private static final String DUMMY_ACCOUNT_ID = "111122223333";
-    private final String data = "1234567890".repeat(DEFAULT_PART_SIZE);
+    private final String data = "1234567890".repeat(10);
+    private final String largeData = "123".repeat(DEFAULT_PART_SIZE);
     private S3Client s3Client;
     private String olAccessPointName;
     private String olapArn;
@@ -46,7 +47,7 @@ public class ObjectLambdaAccessPointTest {
         this.s3BucketName = s3BucketName;
     }
 
-     private PutObjectResponse setupResource(String objectKey) {
+     private PutObjectResponse setupResource(String objectKey, String data) {
         return s3Client.putObject(builder -> builder.bucket(s3BucketName).key(objectKey).build(),
                 RequestBody.fromString(data, StandardCharsets.UTF_8));
     }
@@ -72,7 +73,7 @@ public class ObjectLambdaAccessPointTest {
     public void getObjectSimple() {
         // setup
         String objectKey = UUID.randomUUID().toString();
-        setupResource(objectKey);
+        setupResource(objectKey, data);
         var getObjectRequest = GetObjectRequest.builder().bucket(olapArn).key(objectKey).build();
         // assert
         assertSuccessfulResponse(getObjectRequest, data.getBytes(StandardCharsets.UTF_8));
@@ -85,7 +86,7 @@ public class ObjectLambdaAccessPointTest {
     public void getObjectIfMatchPositive() {
         // setup
         String objectKey = UUID.randomUUID().toString();
-        var putObjectResponse = setupResource(objectKey);
+        var putObjectResponse = setupResource(objectKey, data);
         String eTag = putObjectResponse.eTag();
         var getObjectRequest = GetObjectRequest.builder().bucket(olapArn).key(objectKey).ifMatch(eTag).build();
         // assert
@@ -99,7 +100,7 @@ public class ObjectLambdaAccessPointTest {
     public void getObjectIfModifiedSincePositive() {
         // setup
         String objectKey = UUID.randomUUID().toString();
-        setupResource(objectKey);
+        setupResource(objectKey, data);
         var responseInputStream = s3Client.getObject(builder -> builder
                 .bucket(s3BucketName)
                 .key(objectKey)
@@ -122,7 +123,7 @@ public class ObjectLambdaAccessPointTest {
     public void getObjectIfNoneMatchNegative() {
         // setup
         String objectKey = UUID.randomUUID().toString();
-        setupResource(objectKey);
+        setupResource(objectKey, data);
         var getObjectRequest = GetObjectRequest.builder().bucket(olapArn).key(objectKey).ifNoneMatch("").build();
         // assert
         assertSuccessfulResponse(getObjectRequest, data.getBytes(StandardCharsets.UTF_8));
@@ -135,7 +136,7 @@ public class ObjectLambdaAccessPointTest {
     public void getObjectIfUnmodifiedSincePositive() {
         // setup
         String objectKey = UUID.randomUUID().toString();
-        setupResource(objectKey);
+        setupResource(objectKey, data);
         var responseInputStream = s3Client.getObject(builder -> builder
                 .bucket(s3BucketName)
                 .key(objectKey)
@@ -159,9 +160,9 @@ public class ObjectLambdaAccessPointTest {
     public void partNumberWorks() {
         // setup
         String objectKey = UUID.randomUUID().toString();
-        setupResource(objectKey);
+        setupResource(objectKey, largeData);
         var getObjectRequest = GetObjectRequest.builder().bucket(olapArn).key(objectKey).partNumber(1).build();
-        byte[] tempBytes = data.getBytes(StandardCharsets.UTF_8);
+        byte[] tempBytes = largeData.getBytes(StandardCharsets.UTF_8);
         byte[] slices = Arrays.copyOf(tempBytes, DEFAULT_PART_SIZE);
         // assert
         assertSuccessfulResponse(getObjectRequest, slices);
@@ -171,15 +172,15 @@ public class ObjectLambdaAccessPointTest {
 
     @Test(description = "Calling OLAP with range header to obtain part of the object, "
             + "verify the status code is 200 and the content of the partial object.")
-    public void rangeNumber() {
+    public void rangeWorks() {
         // setup
         int from = 1024;
         int to = 10240;
         String rangeQuery = String.format("bytes=%d-%d", from, to);
         String objectKey = UUID.randomUUID().toString();
-        setupResource(objectKey);
+        setupResource(objectKey, largeData);
         var getObjectRequest = GetObjectRequest.builder().bucket(olapArn).key(objectKey).range(rangeQuery).build();
-        byte[] tempBytes = data.getBytes(StandardCharsets.UTF_8);
+        byte[] tempBytes = largeData.getBytes(StandardCharsets.UTF_8);
         byte[] slices = Arrays.copyOfRange(tempBytes, from, to + 1);
         // assert
         assertSuccessfulResponse(getObjectRequest, slices);
@@ -192,7 +193,7 @@ public class ObjectLambdaAccessPointTest {
     public void expectedBucketOwnerPositive() {
         // setup
         String objectKey = UUID.randomUUID().toString();
-        setupResource(objectKey);
+        setupResource(objectKey, data);
         var getObjectRequestOLAP = GetObjectRequest.builder()
                 .bucket(olapArn)
                 .key(objectKey)
@@ -210,7 +211,7 @@ public class ObjectLambdaAccessPointTest {
     public void expectedBucketOwnerNegative() {
         // setup
         String objectKey = UUID.randomUUID().toString();
-        setupResource(objectKey);
+        setupResource(objectKey, data);
         var getObjectRequestOLAP = GetObjectRequest.builder()
                 .bucket(olapArn)
                 .key(objectKey)
@@ -233,7 +234,7 @@ public class ObjectLambdaAccessPointTest {
     public void versionID() {
         // setup
         String objectKey = UUID.randomUUID().toString();
-        setupResource(objectKey);
+        setupResource(objectKey, data);
         String updatedTemp = "0987654321".repeat(1000);
         var responseInputStream = s3Client.getObject(builder -> builder
                 .bucket(s3BucketName)
@@ -259,7 +260,7 @@ public class ObjectLambdaAccessPointTest {
     public void requestPayerNotSupport() {
         // setup
         String objectKey = UUID.randomUUID().toString();
-        setupResource(objectKey);
+        setupResource(objectKey, data);
         var getObjectRequestOLAP = GetObjectRequest.builder()
                 .bucket(olapArn)
                 .key(objectKey)
