@@ -1,6 +1,6 @@
 # About the Project
 
-This package contains an AWS CloudFormation template that helps you get started with [Amazon S3 Object Lambda](https://docs.aws.amazon.com/AmazonS3/latest/userguide/transforming-objects.html). With S3 Object Lambda, you can add your own code to S3 GetObject requests to modify and process data as it is returned to an application.
+This package contains an AWS CloudFormation template that helps you get started with [Amazon S3 Object Lambda](https://docs.aws.amazon.com/AmazonS3/latest/userguide/transforming-objects.html). With S3 Object Lambda, you can add your own code to S3 GET requests to modify and process data as it is returned to an application.
 
 The AWS CloudFormation template automatically creates relevant resources, configures IAM roles, and sets up an AWS Lambda function to handle requests from your S3 Object Lambda Access Point. The Lambda function is written in [Typescript](https://www.typescriptlang.org/) and supports the [Node.js](https://nodejs.org/en/download/) 14.x Lambda runtime.
 
