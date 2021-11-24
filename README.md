@@ -42,8 +42,8 @@ aws cloudformation deploy --template-file s3objectlambda_defaultconfig.yaml \
 --stack-name <your-Cfn-stack-name> --parameter-overrides ObjectLambdaAccessPointName=<your-OLAP-name> \
 SupportingAccessPointName=<your-S3-AP-name> S3BucketName=<your-S3-bucket-name> \
 LambdaFunctionS3BucketName=<S3-bucket-containing-Lambda-package> \
-LambdaFunctionS3Key=<S3-object-key-of-Lambda-package> LambdaFunctionS3ObjectVersion=<object-version-id>
-  
+LambdaFunctionS3Key=<S3-object-key-of-Lambda-package> LambdaFunctionS3ObjectVersion=<object-version-id> \
+ --capabilities CAPABILITY_IAM
   
 ```
 
@@ -56,7 +56,7 @@ LambdaFunctionS3Key=<S3-object-key-of-Lambda-package> LambdaFunctionS3ObjectVers
 * `LambdaFunctionS3BucketName` takes the name of the Amazon S3 bucket where you have uploaded the Lambda function deployment package. The bucket should be in the same AWS Region as your function, but can be in a different AWS account. It should have versioning enabled.
 * `LambdaFunctionS3Key` takes the Amazon S3 object key of the Lambda function deployment package.
 * `LambdaFunctionS3ObjectVersion` takes the object version id of the Lambda function deployment package.
-
+* `--capabilities CAPABILITY_IAM` is required as the template creates an IAM role for the Lambda function's execution.
 
 **Optional parameters**
 
