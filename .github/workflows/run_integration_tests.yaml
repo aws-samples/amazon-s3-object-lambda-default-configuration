@@ -34,8 +34,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '14.x'
-      - name: Generate a random name for Lambda function
-        run: echo LAMBDA_NODE_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
+      - name: Generate a random name for Lambda functions
+        run: |
+          echo LAMBDA_NODE_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
+          echo LAMBDA_PYTHON_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
+          echo LAMBDA_JAVA_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
       - name: Set up Node Lambda Function and upload to S3
         working-directory: function/nodejs_14_x
         run: |
@@ -51,6 +54,66 @@ jobs:
           distribution: 'adopt'
       - name: Build with Maven and run test
         run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_NODE_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_VERSION}} -DlambdaFunctionRuntime=nodejs14.x
+        # Java Lambda Check
+      - name: Check Java file existence
+        id: check_java_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "function/java11"
+      - name: Set up JDK 11
+        if: steps.check_java_files.outputs.files_exists == 'true'
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+      - name: Set up Java Lambda Function and upload to S3
+        if: steps.check_java_files.outputs.files_exists == 'true'
+        working-directory: function/java11
+        run: |
+          mvn package
+          echo LAMBDA_JAVA_VERSION=$(aws s3api put-object --bucket ${{ secrets.AWS_BUCKET_NAME }} --key ${{env.LAMBDA_JAVA_KEY}} --body target/S3ObjectLambdaDefaultConfigJavaFunction-1.0.jar --output json | jq -r '.VersionId' ) >> $GITHUB_ENV
+      - name: Set up JDK 16 to run test against Java Function
+        if: steps.check_java_files.outputs.files_exists == 'true'
+        uses: actions/setup-java@v2
+        with:
+          java-version: '16'
+          distribution: 'adopt'
+      - name: Build with Maven and run test against Java Lambda function
+        if: steps.check_java_files.outputs.files_exists == 'true'
+        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_JAVA_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_JAVA_VERSION}} -DlambdaFunctionRuntime=java11
+        #Python Lambda Check
+      - name: Check Python file existence
+        id: check_python_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "function/python_3_9"
+      - name: Set up Python
+        if: steps.check_python_files.outputs.files_exists == 'true'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Set up Python Lambda Function and upload to S3
+        if: steps.check_python_files.outputs.files_exists == 'true'
+        working-directory: function/python_3_9
+        run: |
+          python -m pip install -r ./requirements.txt -t ./release/package
+          cd ./release/package
+          zip ../s3objectlambda_deployment_package.zip . -r
+          cd ../../src
+          zip ../release/s3objectlambda_deployment_package s3objectlambda.py -g
+          zip ../release/s3objectlambda_deployment_package ./*/*.py -g
+          cd ../
+          echo LAMBDA_PYTHON_VERSION=$(aws s3api put-object --bucket ${{ secrets.AWS_BUCKET_NAME }} --key ${{env.LAMBDA_PYTHON_KEY}} --body release/s3objectlambda_deployment_package.zip --output json | jq -r '.VersionId' ) >> $GITHUB_ENV
+      - name: Set up JDK 16 to run tests against Python Function
+        if: steps.check_python_files.outputs.files_exists == 'true'
+        uses: actions/setup-java@v2
+        with:
+          java-version: '16'
+          distribution: 'adopt'
+      - name: Build with Maven and run test against Python Lambda function
+        if: steps.check_python_files.outputs.files_exists == 'true'
+        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_PYTHON_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_PYTHON_VERSION}} -DlambdaFunctionRuntime=python3.9
+
       - name: Check Test Result Pass
         if: ${{ !failure() }}
         uses: actions-ecosystem/action-add-labels@v1
