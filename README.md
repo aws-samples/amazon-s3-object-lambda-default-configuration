@@ -101,18 +101,34 @@ For more information, please refer to the [GetObject API Guide](https://docs.aws
 
 # Implementing your transformation
 
-You can extend the AWS Lambda function provided in this package to create your transformation. By default, the function code does not run any transformation, and returns your objects as-is from your Amazon S3 bucket. 
-You can clone the function and add your own transformation code to the `transformObject` function under `function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts`.
+You can extend the AWS Lambda function provided in this package to create your transformation. By default, the function code does not run any transformation, and returns your objects as-is from your Amazon S3 bucket.
+
+You can clone the function and add your own transformation code to the following file location
+
+| runtime | function to implement | file location                                                    |
+|---------|-----------------------|------------------------------------------------------------------|
+| nodejs  | transformObject       | function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts |
+| python  | transform_object      | function/python_3_9/src/transform/transform.py                   |
+|         |                       |                                                                  |
 
 As you implement your transformation function, you can test each iteration of your Lambda function code by updating your deployment package in S3 and re-deploying the template.
 
 ### Build your deployment package
 
+#### nodejs
 1. Run `npm install` to install the required dependencies to run this function.
 2. Run `npm run-script build` to run ESBuild and generate a single JS file called `s3objectlambda.js` from the source code.
 3. Run `npm run-script test` to execute the unit tests.
 4. Run `npm run-script package` to create a deployment package ZIP file under `release/s3objectlambda_deployment_package.zip`.
 
+#### python
+1. Run `python -m pip freeze > requirements.txt` to create the Requirements File
+2. Run `pip3 install -r requirements.txt -t ./release/package` to add the package files into release folder
+3. Run `zip ../s3objectlambda_deployment_package.zip . -r` inside `S3ObjectLambdaDefaultConfigPythonFunction/release/package` to zip the package file
+4. Run `zip ../release/s3objectlambda_deployment_package s3objectlambda.py -g` inside `S3ObjectLambdaDefaultConfigPythonFunction/src` to zip s3objectlambda.py file
+5. Run `zip ../release/s3objectlambda_deployment_package ./*/*.py -g` inside `S3ObjectLambdaDefaultConfigPythonFunction/src` to zip the sub folders
+
+`s3objectlambda_deployment_package.zip` will be created `release/s3objectlambda_deployment_package.zip`.
 ### Deploying your Lambda function update
 
 1. Upload the new deployment package under the same object key `LambdaFunctionS3Key` in your Amazon S3 bucket `LambdaFunctionS3BucketName`. Once your upload is complete, you will see a new `versionId` for your latest version of the deployment package.
