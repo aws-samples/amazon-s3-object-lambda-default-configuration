@@ -10,6 +10,15 @@ Description: >
   reduce errors caused by manual processes, and focus on innovation and implementing business logic
   instead of managing the setup process.
 
+Mappings:
+  LambdaRuntimeHandlerMapping:
+    nodejs14.x:
+      handler: s3objectlambda.handler
+    python3.9:
+      handler: s3objectlambda.handler
+    java11:
+      handler: com.amazon.s3objectlambda.GetObjectHandler::handleRequest
+
 Parameters:
   S3BucketName:
     Type: String
@@ -53,7 +62,7 @@ Parameters:
   LambdaFunctionRuntime:
     Type: String
     AllowedValues: [ nodejs14.x, python3.9, java11 ]
-    Description: Lambda function runtime
+    Description: Identifier for the Lambda function runtime
 
   EnableCloudWatchMonitoring:
     Type: String
@@ -130,7 +139,8 @@ Resources:
           Ref: LambdaFunctionS3Key
         S3ObjectVersion:
           Ref: LambdaFunctionS3ObjectVersion
-      Handler: s3objectlambda.handler
+      Handler:
+        Fn::FindInMap: [LambdaRuntimeHandlerMapping  , Ref: LambdaFunctionRuntime , handler ]
       MemorySize: 1024
       Timeout: 60
       PackageType: Zip
