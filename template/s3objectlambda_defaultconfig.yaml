@@ -17,7 +17,7 @@ Mappings:
     python3.9:
       handler: s3objectlambda.handler
     java11:
-      handler: com.amazon.s3objectlambda.GetObjectHandler::handleRequest
+      handler: com.amazon.s3objectlambda.Handler::handleRequest
 
 Parameters:
   S3BucketName:

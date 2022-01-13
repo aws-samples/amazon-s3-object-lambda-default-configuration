@@ -101,8 +101,16 @@ For more information, please refer to the [GetObject API Guide](https://docs.aws
 
 # Implementing your transformation
 
-You can extend the AWS Lambda function provided in this package to create your transformation. By default, the function code does not run any transformation, and returns your objects as-is from your Amazon S3 bucket. 
-You can clone the function and add your own transformation code to the `transformObject` function under `function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts`.
+You can extend the AWS Lambda function provided in this package to create your transformation. By default, the function code does not run any transformation, and returns your objects as-is from your Amazon S3 bucket.
+
+You can clone the function and add your own transformation code to the following file location
+
+| runtime | function to implement   | file location                                                                              |
+|---------|-------------------------|--------------------------------------------------------------------------------------------|
+| nodejs  | transformObject         | function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts                           |
+| python  | transform_object        | function/python_3_9/src/transform/transform.py                                             |
+| java    | transformObjectResponse | function/java11/src/main/java/com/amazon/s3objectlambda/transform/ResponseTransformer.java |
+|         |                         |                                                                                            |
 
 As you implement your transformation function, you can test each iteration of your Lambda function code by updating your deployment package in S3 and re-deploying the template.
 
@@ -112,6 +120,11 @@ As you implement your transformation function, you can test each iteration of yo
 2. Run `npm run-script build` to run ESBuild and generate a single JS file called `s3objectlambda.js` from the source code.
 3. Run `npm run-script test` to execute the unit tests.
 4. Run `npm run-script package` to create a deployment package ZIP file under `release/s3objectlambda_deployment_package.zip`.
+
+#### java
+1. Run `mvn test` to run the unit tests.
+2. Run `mvn package` to create the deployment package jar file in `target/S3ObjectLambdaDefaultConfigJavaFunction-1.0.jar`.
+
 
 ### Deploying your Lambda function update
 
