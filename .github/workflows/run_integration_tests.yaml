@@ -34,8 +34,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '14.x'
-      - name: Generate a random name for Lambda function
-        run: echo LAMBDA_NODE_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
+      - name: Generate a random name for Identify functions
+        run: |
+          echo LAMBDA_NODE_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
+          echo LAMBDA_PYTHON_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
+          echo LAMBDA_JAVA_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
       - name: Set up Node Lambda Function and upload to S3
         working-directory: function/nodejs_14_x
         run: |
@@ -63,9 +66,6 @@ jobs:
         with:
           java-version: '11'
           distribution: 'adopt'
-      - name: Generate a random name for Java Lambda function
-        if: steps.check_java_files.outputs.files_exists == 'true'
-        run: echo LAMBDA_JAVA_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
       - name: Set up Java Lambda Function and upload to S3
         if: steps.check_java_files.outputs.files_exists == 'true'
         working-directory: function/java11
@@ -92,12 +92,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
-      - name: Generate a random name for Python Lambda function
-        if: steps.check_python_files.outputs.files_exists == 'true'
-        run: echo LAMBDA_PYTHON_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
       - name: Set up Python Lambda Function and upload to S3
         if: steps.check_python_files.outputs.files_exists == 'true'
-        working-directory: function/python_3.9
+        working-directory: function/python_3_9
         run: |
           python -m pip install -r ./requirements.txt -t ./release/package
           cd ./release/package
