@@ -8,6 +8,7 @@
         <parameter name="supportingAccessPointName" value="${supportAccessPointName}"/>
         <parameter name="lambdaFunctionS3BucketName" value="${lambdaFunctionS3BucketName}" />
         <parameter name="lambdaFunctionS3Key" value="${lambdaFunctionS3Key}" />
+        <parameter name="lambdaFunctionRuntime" value="${lambdaFunctionRuntime}" />
         <parameter name="createNewSupportingAccessPoint" value="{createNameSupportingAccessPoint}" />
         <parameter name="lambdaVersion" value="{lambdaVersion}" />
         <groups>

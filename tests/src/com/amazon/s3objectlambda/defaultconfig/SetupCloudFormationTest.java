@@ -25,11 +25,11 @@ public class SetupCloudFormationTest {
     }
 
     @Parameters({"region", "templateUrl", "s3BucketName", "lambdaFunctionS3BucketName",
-            "lambdaFunctionS3Key", "createNewSupportingAccessPoint", "lambdaVersion"})
+            "lambdaFunctionS3Key", "lambdaFunctionRuntime", "createNewSupportingAccessPoint", "lambdaVersion"})
     @Test(description = "Deploy the CloudFormation template to set up s3ol access point")
     @SuppressWarnings("checkstyle:parameternumber")
     public void deployStack(ITestContext context, String region, String templateUrl, String s3BucketName,
-                            String lambdaFunctionS3BucketName, String lambdaFunctionS3Key,
+                            String lambdaFunctionS3BucketName, String lambdaFunctionS3Key, String lambdaFunctionRuntime,
                             String createNewSupportingAccessPoint, String lambdaVersion) {
         var sdkHelper = new SdkHelper();
         String stackName = (String) context.getAttribute(STACK_NAME_KEY);
@@ -42,6 +42,7 @@ public class SetupCloudFormationTest {
                 sdkHelper.buildParameter("S3BucketName", s3BucketName),
                 sdkHelper.buildParameter("LambdaFunctionS3BucketName", lambdaFunctionS3BucketName),
                 sdkHelper.buildParameter("LambdaFunctionS3Key", lambdaFunctionS3Key),
+                sdkHelper.buildParameter("LambdaFunctionRuntime", lambdaFunctionRuntime),
                 sdkHelper.buildParameter("LambdaFunctionS3ObjectVersion", lambdaVersion),
                 sdkHelper.buildParameter("CreateNewSupportingAccessPoint", createNewSupportingAccessPoint)));
         var createStackRequest = CreateStackRequest.builder()
