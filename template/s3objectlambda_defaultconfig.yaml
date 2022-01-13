@@ -130,7 +130,7 @@ Resources:
           Ref: LambdaFunctionS3Key
         S3ObjectVersion:
           Ref: LambdaFunctionS3ObjectVersion
-      Handler: com.amazon.s3objectlambda.GetObjectHandler::handleRequest
+      Handler: s3objectlambda.handler
       MemorySize: 1024
       Timeout: 60
       PackageType: Zip
