@@ -42,7 +42,8 @@ aws cloudformation deploy --template-file s3objectlambda_defaultconfig.yaml \
 --stack-name <your-Cfn-stack-name> --parameter-overrides ObjectLambdaAccessPointName=<your-OLAP-name> \
 SupportingAccessPointName=<your-S3-AP-name> S3BucketName=<your-S3-bucket-name> \
 LambdaFunctionS3BucketName=<S3-bucket-containing-Lambda-package> \
-LambdaFunctionS3Key=<S3-object-key-of-Lambda-package> LambdaFunctionS3ObjectVersion=<object-version-id> \
+LambdaFunctionS3Key=<S3-object-key-of-Lambda-package> LambdaFunctionRuntime=<Your-Lambda-Function-Runtime> \
+LambdaFunctionS3ObjectVersion=<object-version-id> \
  --capabilities CAPABILITY_IAM
   
 ```
@@ -55,6 +56,7 @@ LambdaFunctionS3Key=<S3-object-key-of-Lambda-package> LambdaFunctionS3ObjectVers
 * `S3BucketName` takes the bucket name to use with S3 Object Lambda. The bucket should exist in the same AWS account and AWS Region that will deploy this template. The bucket should also [delegate access control to Access Points](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-points-policies.html#access-points-delegating-control).
 * `LambdaFunctionS3BucketName` takes the name of the Amazon S3 bucket where you have uploaded the Lambda function deployment package. The bucket should be in the same AWS Region as your function, but can be in a different AWS account. It should have versioning enabled.
 * `LambdaFunctionS3Key` takes the Amazon S3 object key of the Lambda function deployment package.
+* `lambdaFunctionRuntime` takes the Lambda function run time. Example: nodejs14.x
 * `LambdaFunctionS3ObjectVersion` takes the object version id of the Lambda function deployment package.
 * `--capabilities CAPABILITY_IAM` is required as the template creates an IAM role for the Lambda function's execution.
 
@@ -136,7 +138,7 @@ You can test your code changes by running the integration test suite. The test s
 ```
 mvn test -f tests/pom.xml -Dregion=${{AWS_REGION}} -DtemplateUrl=https://${{AWS_BUCKET_NAME}}.s3.${{AWS_REGION}}.amazonaws.com/${{TEMPLATE_KEY}} \
 -Ds3BucketName=${{AWS_BUCKET_NAME}} -DlambdaFunctionS3BucketName=${{AWS_BUCKET_NAME}} -DlambdaFunctionS3Key=${{LAMBDA_NODE_KEY}}
- -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{LAMBDA_VERSION}}
+-DlambdaFunctionRuntime=${{LAMBDA_FUNCTION_RUNTIME}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{LAMBDA_VERSION}}
 ```
 
 # Contributing
