@@ -50,7 +50,7 @@ jobs:
           java-version: '16'
           distribution: 'adopt'
       - name: Build with Maven and run test
-        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_NODE_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_VERSION}}
+        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_NODE_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_VERSION}} -DlambdaFunctionRuntime=nodejs14.x
       - name: Check Test Result Pass
         if: ${{ !failure() }}
         uses: actions-ecosystem/action-add-labels@v1

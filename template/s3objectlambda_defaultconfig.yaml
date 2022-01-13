@@ -53,6 +53,7 @@ Parameters:
   LambdaFunctionRuntime:
     Type: String
     AllowedValues: [ nodejs14.x, python3.9, java11 ]
+    Description: Lambda function runtime
 
   EnableCloudWatchMonitoring:
     Type: String
@@ -129,7 +130,7 @@ Resources:
           Ref: LambdaFunctionS3Key
         S3ObjectVersion:
           Ref: LambdaFunctionS3ObjectVersion
-      Handler: s3objectlambda.handler
+      Handler: com.amazon.s3objectlambda.GetObjectHandler::handleRequest
       MemorySize: 1024
       Timeout: 60
       PackageType: Zip
