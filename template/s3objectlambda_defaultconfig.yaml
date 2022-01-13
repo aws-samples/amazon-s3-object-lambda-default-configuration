@@ -50,6 +50,10 @@ Parameters:
     Default: ""
     Description: An optional static payload that provides supplemental data to the Lambda function used to transform objects.
 
+  LambdaFunctionRuntime:
+    Type: String
+    AllowedValues: [ nodejs14.x, python3.9, java11 ]
+
   EnableCloudWatchMonitoring:
     Type: String
     Description: >
@@ -130,7 +134,8 @@ Resources:
       Timeout: 60
       PackageType: Zip
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: nodejs14.x
+      Runtime:
+        Ref: LambdaFunctionRuntime
       Tags:
         - Key: "CreatedBy"
           Value: "S3 Object Lambda Default Configuration"
