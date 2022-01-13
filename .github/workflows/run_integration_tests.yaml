@@ -107,7 +107,6 @@ jobs:
           zip ../release/s3objectlambda_deployment_package ./*/*.py -g
           cd ../
           echo LAMBDA_PYTHON_VERSION=$(aws s3api put-object --bucket ${{ secrets.AWS_BUCKET_NAME }} --key ${{env.LAMBDA_PYTHON_KEY}} --body release/s3objectlambda_deployment_package.zip --output json | jq -r '.VersionId' ) >> $GITHUB_ENV
-          ls release
       - name: Set up JDK 16 to run tests against Python Function
         if: steps.check_python_files.outputs.files_exists == 'true'
         uses: actions/setup-java@v2
