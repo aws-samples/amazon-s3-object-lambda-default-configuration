@@ -34,7 +34,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '14.x'
-      - name: Generate a random name for Identify functions
+      - name: Generate a random name for Lambda functions
         run: |
           echo LAMBDA_NODE_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
           echo LAMBDA_PYTHON_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
