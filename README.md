@@ -105,11 +105,12 @@ You can extend the AWS Lambda function provided in this package to create your t
 
 You can clone the function and add your own transformation code to the following file location
 
-| runtime | function to implement | file location                                                    |
-|---------|-----------------------|------------------------------------------------------------------|
-| nodejs  | transformObject       | function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts |
-| python  | transform_object      | function/python_3_9/src/transform/transform.py                   |
-|         |                       |                                                                  |
+| runtime | function to implement   | file location                                                                              |
+|---------|-------------------------|--------------------------------------------------------------------------------------------|
+| nodejs  | transformObject         | function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts                           |
+| python  | transform_object        | function/python_3_9/src/transform/transform.py                                             |
+| java    | transformObjectResponse | function/java11/src/main/java/com/amazon/s3objectlambda/transform/ResponseTransformer.java |
+|         |                         |                                                                                            |
 
 As you implement your transformation function, you can test each iteration of your Lambda function code by updating your deployment package in S3 and re-deploying the template.
 
@@ -126,11 +127,13 @@ As you implement your transformation function, you can test each iteration of yo
 2. Run `pip3 install -r requirements.txt -t ./release/package` to add the package files into release folder
 3. Run `zip ../s3objectlambda_deployment_package.zip . -r` inside `S3ObjectLambdaDefaultConfigPythonFunction/release/package` to zip the package file
 4. Run `zip ../release/s3objectlambda_deployment_package s3objectlambda.py -g` inside `S3ObjectLambdaDefaultConfigPythonFunction/src` to zip s3objectlambda.py file
-5. Run `zip ../release/s3objectlambda_deployment_package ./*/*.py -g` inside `S3ObjectLambdaDefaultConfigPythonFunction/src` to zip the sub folders
+5. Run `zip ../release/s3objectlambda_deployment_package ./*/*.py -g` inside `S3ObjectLambdaDefaultConfigPythonFunction/src` to zip the sub folders `s3objectlambda_deployment_package.zip` will be created `release/s3objectlambda_deployment_package.zip`.
 
-`s3objectlambda_deployment_package.zip` will be created `release/s3objectlambda_deployment_package.zip`.
+#### java
+1. Run `mvn test` to run the unit tests.
+2. Run `mvn package` to create the deployment package jar file in `target/S3ObjectLambdaDefaultConfigJavaFunction-1.0.jar`.
+
 ### Deploying your Lambda function update
-
 1. Upload the new deployment package under the same object key `LambdaFunctionS3Key` in your Amazon S3 bucket `LambdaFunctionS3BucketName`. Once your upload is complete, you will see a new `versionId` for your latest version of the deployment package.
 2. Pass the new `versionId` as the `LambdaFunctionS3ObjectVersion` parameter and re-deploy your AWS CloudFormation template. This will update the AWS Lambda function with your transformation code changes.
 3. Use the Amazon S3 Object Lambda Access Point to get objects from your Amazon S3 bucket. The objects will now be transformed according to your transformation function in the AWS Lambda function. 
