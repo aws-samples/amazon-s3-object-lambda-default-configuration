@@ -14,7 +14,7 @@ def get_request_header(headers):
     :return: Headers to be sent with pre-signed-url
     """
     new_headers = dict()
-    headers_to_be_presigned = ['x-amz-expected-bucket-owner', 'x-amz-request-payer', 'If-Match',
+    headers_to_be_presigned = ['x-amz-expected-bucket-owner', 'If-Match',
                                'If-Modified-Since', 'If-None-Match', 'If-Unmodified-Since']
     for key, value in headers.items():
         if key in headers_to_be_presigned:
