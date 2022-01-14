@@ -116,16 +116,20 @@ As you implement your transformation function, you can test each iteration of yo
 
 ### Build your deployment package
 
+#### nodejs
 1. Run `npm install` to install the required dependencies to run this function.
 2. Run `npm run-script build` to run ESBuild and generate a single JS file called `s3objectlambda.js` from the source code.
 3. Run `npm run-script test` to execute the unit tests.
 4. Run `npm run-script package` to create a deployment package ZIP file under `release/s3objectlambda_deployment_package.zip`.
 
-#### java
-1. Run `mvn test` to run the unit tests.
-2. Run `mvn package` to create the deployment package jar file in `target/S3ObjectLambdaDefaultConfigJavaFunction-1.0.jar`.
+#### python
+1. Run `python -m pip freeze > requirements.txt` to create the Requirements File
+2. Run `pip3 install -r requirements.txt -t ./release/package` to add the package files into release folder
+3. Run `zip ../s3objectlambda_deployment_package.zip . -r` inside `S3ObjectLambdaDefaultConfigPythonFunction/release/package` to zip the package file
+4. Run `zip ../release/s3objectlambda_deployment_package s3objectlambda.py -g` inside `S3ObjectLambdaDefaultConfigPythonFunction/src` to zip s3objectlambda.py file
+5. Run `zip ../release/s3objectlambda_deployment_package ./*/*.py -g` inside `S3ObjectLambdaDefaultConfigPythonFunction/src` to zip the sub folders
 
-
+`s3objectlambda_deployment_package.zip` will be created `release/s3objectlambda_deployment_package.zip`.
 ### Deploying your Lambda function update
 
 1. Upload the new deployment package under the same object key `LambdaFunctionS3Key` in your Amazon S3 bucket `LambdaFunctionS3BucketName`. Once your upload is complete, you will see a new `versionId` for your latest version of the deployment package.
