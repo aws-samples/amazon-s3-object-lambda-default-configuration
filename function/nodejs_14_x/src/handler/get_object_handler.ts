@@ -45,9 +45,14 @@ Promise<PromiseResult<{}, AWSError> | null> {
 
   const responseHeaders = getResponseHeaders(objectResponse.headers);
 
-  if (!objectResponse.ok) {
+  if (objectResponse.status >= 400) {
     // Errors in the Amazon S3 response should be forwarded to the caller without invoking transformObject.
-    return getResponseForS3Errors(s3Client, requestContext, objectResponse, responseHeaders);
+    return getResponseForS3Errors(s3Client, requestContext, objectResponse, responseHeaders, originalObject);
+  }
+
+  if (objectResponse.status >= 300 && objectResponse.status < 400) {
+    // Handle the redirect scenarios here such as Not Modified (304), Moved Permanently (301)
+    return writeResponse(s3Client, requestContext, originalObject, responseHeaders, objectResponse);
   }
 
   // Transform the object
@@ -61,7 +66,7 @@ Promise<PromiseResult<{}, AWSError> | null> {
     return getErrorResponse(s3Client, requestContext, ErrorCode.INVALID_REQUEST, String(transformedObject.errorMessage), responseHeaders);
   }
   if (transformedObject.object !== undefined) {
-    return writeResponse(s3Client, requestContext, transformedObject.object, responseHeaders);
+    return writeResponse(s3Client, requestContext, transformedObject.object, responseHeaders, objectResponse);
   }
   return null;
 }
@@ -98,13 +103,14 @@ function getResponseHeaders (headers: Headers): Headers {
  * Send the transformed object back to Amazon S3 Object Lambda, by invoking the WriteGetObjectResponse API.
  */
 async function writeResponse (s3Client: S3, requestContext: GetObjectContext, transformedObject: Buffer,
-  headers: Headers): Promise<PromiseResult<{}, AWSError>> {
+  headers: Headers, objectResponse: Response): Promise<PromiseResult<{}, AWSError>> {
   const { algorithm, digest } = getChecksum(transformedObject);
 
   console.log('Sending transformed results to the Object Lambda Access Point');
   return s3Client.writeGetObjectResponse({
     RequestRoute: requestContext.outputRoute,
     RequestToken: requestContext.outputToken,
+    StatusCode: objectResponse.status,
     Body: transformedObject,
     Metadata: {
       'body-checksum-algorithm': algorithm,
