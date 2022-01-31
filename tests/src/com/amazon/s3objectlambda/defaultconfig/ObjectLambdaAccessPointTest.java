@@ -153,6 +153,45 @@ public class ObjectLambdaAccessPointTest {
         cleanupResource(objectKey);
     }
 
+    @Test(description = "Calling OLAP with If-Match header(incorrect etag) to obtain the temp object, " +
+            "verify the status code is 412 due to there is no object with specified etag (Presign Url issue)")
+    public void getObjectIfMatchNegative() {
+        String objectKey = UUID.randomUUID().toString();
+        setupResource(objectKey, data);
+        var getObjectRequest = GetObjectRequest.builder().bucket(olapArn).key(objectKey)
+                .ifMatch("asdfsdf").build();
+        try {
+            var getObjectResponse = s3Client.getObject(getObjectRequest);
+            Assert.fail("If-Match negative should not be a successful call. Please see the response detail: "
+                    + getObjectResponse);
+        } catch (S3Exception s3Exception) {
+            Assert.assertEquals(s3Exception.statusCode(), HttpStatus.SC_PRECONDITION_FAILED);
+        }
+        // cleanup
+        cleanupResource(objectKey);
+    }
+
+    @Test(description = "Calling OLAP with If-None-Match header(last modified time minus one second) " +
+            "to obtain the temp object, verify the status code is 412 since the object was modified.")
+    public void getObjectIfUnmodifiedSinceNegative() {
+        String objectKey = UUID.randomUUID().toString();
+        setupResource(objectKey, data);
+        var responseInputStream = s3Client.getObject(builder ->
+                builder.bucket(s3BucketName).key(objectKey).build());
+        var lastmodifiedInstant = responseInputStream.response().lastModified();
+        var getObjectRequest = GetObjectRequest.builder().bucket(olapArn).key(objectKey)
+                .ifUnmodifiedSince(lastmodifiedInstant.minusSeconds(20)).build();
+        try {
+            ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
+            Assert.fail("If-None-Match Positive expect a NOT_MODIFIED exception but a SUCCESSFUL is returned");
+        } catch (S3Exception s3Exception) {
+            Assert.assertEquals(s3Exception.statusCode(), HttpStatus.SC_PRECONDITION_FAILED);
+        } catch (Exception e) {
+            Assert.fail("Unexpected Errors");
+        }
+        // cleanup
+        cleanupResource(objectKey);
+    }
 
     @Test(description = "Calling OLAP with partnumber header to obtain part of the object, "
             + "verify if the status code is 200 and the content of the part object is correct."
