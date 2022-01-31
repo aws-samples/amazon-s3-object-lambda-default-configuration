@@ -105,12 +105,12 @@ You can extend the AWS Lambda function provided in this package to create your t
 
 You can clone the function and add your own transformation code to the following file location
 
-| runtime | function to implement   | file location                                                                              |
-|---------|-------------------------|--------------------------------------------------------------------------------------------|
-| nodejs  | transformObject         | function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts                           |
-| python  | transform_object        | function/python_3_9/src/transform/transform.py                                             |
-| java    | transformObjectResponse | function/java11/src/main/java/com/amazon/s3objectlambda/transform/ResponseTransformer.java |
-|         |                         |                                                                                            |
+| runtime | function to implement   | file location                                                                               |
+|---------|-------------------------|---------------------------------------------------------------------------------------------|
+| nodejs  | transformObject         | function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts                            |
+| python  | transform_object        | function/python_3_9/src/transform/transform.py                                              |
+| java    | transformObjectResponse | function/java11/src/main/java/com/example/s3objectlambda/transform/ResponseTransformer.java |
+|         |                         |                                                                                             |
 
 As you implement your transformation function, you can test each iteration of your Lambda function code by updating your deployment package in S3 and re-deploying the template.
 
