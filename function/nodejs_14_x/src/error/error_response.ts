@@ -1,4 +1,5 @@
 import { AWSError } from 'aws-sdk';
+import { Parser } from 'aws-sdk/dist/xml2js';
 import ErrorCode from './error_code';
 import { GetObjectContext } from '../s3objectlambda_event.types';
 import S3 from 'aws-sdk/clients/s3';
@@ -23,14 +24,15 @@ export async function getErrorResponse (s3Client: S3, requestContext: GetObjectC
 }
 
 export async function getResponseForS3Errors (s3Client: S3, requestContext: GetObjectContext, objectResponse: Response,
-  headers: Headers): Promise<PromiseResult<{}, AWSError>> {
+  headers: Headers, objectResponseBody: Buffer): Promise<PromiseResult<{}, AWSError>> {
+  const objectResponseData = new Parser().parseString(objectResponseBody);
   console.log(`Encountered an S3 Error, status code: ${objectResponse.status}. Forwarding this to the Object Lambda Access Point.`);
 
   return s3Client.writeGetObjectResponse({
     RequestRoute: requestContext.outputRoute,
     RequestToken: requestContext.outputToken,
     StatusCode: objectResponse.status,
-    ErrorCode: objectResponse.statusText,
+    ErrorCode: objectResponseData.Code,
     ErrorMessage: `Received ${objectResponse.statusText} from the supporting Access Point.`,
     ...headers
   }).promise();
