@@ -18,7 +18,6 @@ Mappings:
       handler: s3objectlambda.handler
     java11:
       handler: com.example.s3objectlambda.Handler::handleRequest
-
 Parameters:
   S3BucketName:
     Type: String
