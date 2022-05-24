@@ -140,6 +140,8 @@ public class GetObjectHandler implements RequestHandler {
         var httpRequestBuilder = HttpRequest.newBuilder(new URI(s3PresignedUrl));
         var userRequestHeaders = this.s3ObjectLambdaEvent.getUserRequest().getHeaders();
         var headersToBePresigned = Arrays.asList(
+                "x-amz-checksum-mode",
+                "x-amz-request-payer",
                 "x-amz-expected-bucket-owner",
                 "If-Match",
                 "If-Modified-Since",

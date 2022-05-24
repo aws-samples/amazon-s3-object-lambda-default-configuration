@@ -295,8 +295,8 @@ public class ObjectLambdaAccessPointTest {
     }
 
 
-    @Test(description = "Object Lambda does not support x-amz-request-payer header, expecting a 403")
-    public void requestPayerNotSupport() {
+    @Test(description = "Object Lambda passes forward x-amz-request-payer header. Verify that the status code is 200")
+    public void requestPayerIsPassedToS3() {
         // setup
         String objectKey = UUID.randomUUID().toString();
         setupResource(objectKey, data);
@@ -306,14 +306,7 @@ public class ObjectLambdaAccessPointTest {
                 .requestPayer(Payer.UNKNOWN_TO_SDK_VERSION.toString())
                 .build();
         // assert
-        try {
-            s3Client.getObject(getObjectRequestOLAP);
-            Assert.fail("Object Lambda does not support x-amz-request-payer header");
-        } catch (S3Exception s3Exception) {
-            Assert.assertEquals(s3Exception.statusCode(), HttpStatus.SC_FORBIDDEN);
-        } catch (Exception e) {
-            Assert.fail("Unexpected Errors: " + e.getMessage());
-        }
+        assertSuccessfulResponse(getObjectRequestOLAP, data.getBytes(StandardCharsets.UTF_8));
         // cleanup
         cleanupResource(objectKey);
     }
