@@ -77,8 +77,8 @@ Promise<PromiseResult<{}, AWSError> | null> {
  */
 function getRequestHeaders (headersObj: object): Map<string, string> {
   const headersMap: Map<string, string> = new Map();
-  const headersToBePresigned = ['x-amz-expected-bucket-owner', 'If-Match', 'If-Modified-Since', 'If-None-Match',
-    'If-Unmodified-Since'];
+  const headersToBePresigned = ['x-amz-checksum-mode', 'x-amz-request-payer', 'x-amz-expected-bucket-owner', 'If-Match',
+    'If-Modified-Since', 'If-None-Match', 'If-Unmodified-Since'];
 
   new Map(Object.entries(headersObj)).forEach((value: string, key: string) => {
     if (headersToBePresigned.includes(key)) {
