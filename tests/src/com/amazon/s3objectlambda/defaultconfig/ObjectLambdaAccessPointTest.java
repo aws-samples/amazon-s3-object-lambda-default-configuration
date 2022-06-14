@@ -52,6 +52,14 @@ public class ObjectLambdaAccessPointTest {
                 RequestBody.fromString(data, StandardCharsets.UTF_8));
     }
 
+    protected PutObjectResponse setupResourceWithChecksum(String objectKey, String data) {
+        return s3Client.putObject(builder -> builder.bucket(s3BucketName)
+                                          .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                          .key(objectKey)
+                                          .build(),
+                                  RequestBody.fromString(data, StandardCharsets.UTF_8));
+    }
+
     private void cleanupResource(String objectKey) {
         s3Client.deleteObject(builder -> builder.bucket(s3BucketName).key(objectKey).build());
     }
@@ -391,6 +399,26 @@ public class ObjectLambdaAccessPointTest {
         var getObjectRequestOLAP = GetObjectRequest.builder().bucket(olapArn).key(objectKey).build();
         // assert
         assertSuccessfulResponse(getObjectRequestOLAP, data.getBytes(StandardCharsets.UTF_8));
+        // cleanup
+        cleanupResource(objectKey);
+    }
+
+    @Parameters()
+    @Test(description = "Calling OLAP to obtain the object,"
+            + "verify if the status code is 200 and the content is correct and checksum is properly retrieved.")
+    public void getObjectSimpleWithChecksum() {
+        // setup
+        String objectKey = UUID.randomUUID().toString();
+        setupResourceWithChecksum(objectKey, data);
+        var getObjectRequest = GetObjectRequest.builder()
+                .bucket(olapArn)
+                .checksumMode(ChecksumMode.ENABLED)
+                .key(objectKey)
+                .build();
+        // assert
+        assertSuccessfulResponse(getObjectRequest, data.getBytes(StandardCharsets.UTF_8));
+        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
+        Assert.assertNotNull(object.response().checksumCRC32());
         // cleanup
         cleanupResource(objectKey);
     }
