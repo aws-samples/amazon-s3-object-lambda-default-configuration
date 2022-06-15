@@ -5,6 +5,7 @@ import static com.amazon.s3objectlambda.defaultconfig.KeyConstants.*;
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.testng.ITestContext;
+import org.testng.SkipException;
 import org.testng.annotations.*;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -403,10 +404,14 @@ public class ObjectLambdaAccessPointTest {
         cleanupResource(objectKey);
     }
 
-    @Parameters()
+    @Parameters({"lambdaFunctionRuntime"})
     @Test(description = "Calling OLAP to obtain the object,"
             + "verify if the status code is 200 and the content is correct and checksum is properly retrieved.")
-    public void getObjectSimpleWithChecksum() {
+    public void getObjectSimpleWithChecksum(String lambdaFunctionRuntime) {
+        // We only support passing back the headers in nodejs currently
+        if(!lambdaFunctionRuntime.contains("nodejs")){
+            throw new SkipException("Headers are currently passed only in nodejs");
+        }
         // setup
         String objectKey = UUID.randomUUID().toString();
         setupResourceWithChecksum(objectKey, data);
