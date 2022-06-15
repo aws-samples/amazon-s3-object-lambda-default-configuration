@@ -124,9 +124,13 @@ jobs:
         uses: actions-ecosystem/action-add-labels@v1
         with:
           labels: Test Failed
-      - name: Removed Reviewed Label
+      - name: Remove Reviewed Label
         if: ${{ always() }}
         uses: actions-ecosystem/action-remove-labels@v1
         with:
           labels: Manually Reviewed
-
+      - name: Remove Test Failed Label
+        if: ${{ !failure() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: Test Failed
