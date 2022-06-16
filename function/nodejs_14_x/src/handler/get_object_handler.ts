@@ -3,7 +3,7 @@ import { getPartNumber, getRange } from '../request/utils';
 
 import { AWSError } from 'aws-sdk/lib/error';
 import ErrorCode from '../error/error_code';
-import fetch from 'node-fetch';
+import fetch, { Response } from 'node-fetch';
 import { getErrorResponse, getResponseForS3Errors } from '../error/error_response';
 import mapPartNumber from '../response/part_number_mapper';
 import mapRange from '../response/range_mapper';
@@ -13,6 +13,7 @@ import transformObject from '../transform/s3objectlambda_transformer';
 import validate from '../request/validator';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import getChecksum from '../checksum/checksum';
+import { headerToWgorParam, ParamsKeys } from '../response/param_transformer';
 
 /**
  * Handles a GetObject request, by performing the following steps:
@@ -106,6 +107,20 @@ async function writeResponse (s3Client: S3, requestContext: GetObjectContext, tr
   headers: Headers, objectResponse: Response): Promise<PromiseResult<{}, AWSError>> {
   const { algorithm, digest } = getChecksum(transformedObject);
 
+  const WGORParams = new Map<string, any>();
+
+  // Create the Map with the params for WGOR
+  headers.forEach((value, key) => {
+    const paramKey = headerToWgorParam(key);
+    if (ParamsKeys.includes(paramKey) && value !== '' && value !== null) {
+      if (paramKey === 'LastModified') {
+        WGORParams.set(paramKey, Date.parse(value));
+      } else {
+        WGORParams.set(paramKey, value);
+      }
+    }
+  });
+
   console.log('Sending transformed results to the Object Lambda Access Point');
   return s3Client.writeGetObjectResponse({
     RequestRoute: requestContext.outputRoute,
@@ -116,7 +131,7 @@ async function writeResponse (s3Client: S3, requestContext: GetObjectContext, tr
       'body-checksum-algorithm': algorithm,
       'body-checksum-digest': digest
     },
-    ...headers
+    ...Object.fromEntries(WGORParams)
   }).promise();
 }
 

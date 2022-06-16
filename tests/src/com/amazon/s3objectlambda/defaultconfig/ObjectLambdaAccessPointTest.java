@@ -5,6 +5,7 @@ import static com.amazon.s3objectlambda.defaultconfig.KeyConstants.*;
 import org.apache.http.HttpStatus;
 import org.testng.Assert;
 import org.testng.ITestContext;
+import org.testng.SkipException;
 import org.testng.annotations.*;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -50,6 +51,14 @@ public class ObjectLambdaAccessPointTest {
      private PutObjectResponse setupResource(String objectKey, String data) {
         return s3Client.putObject(builder -> builder.bucket(s3BucketName).key(objectKey).build(),
                 RequestBody.fromString(data, StandardCharsets.UTF_8));
+    }
+
+    protected PutObjectResponse setupResourceWithChecksum(String objectKey, String data) {
+        return s3Client.putObject(builder -> builder.bucket(s3BucketName)
+                                          .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                          .key(objectKey)
+                                          .build(),
+                                  RequestBody.fromString(data, StandardCharsets.UTF_8));
     }
 
     private void cleanupResource(String objectKey) {
@@ -391,6 +400,30 @@ public class ObjectLambdaAccessPointTest {
         var getObjectRequestOLAP = GetObjectRequest.builder().bucket(olapArn).key(objectKey).build();
         // assert
         assertSuccessfulResponse(getObjectRequestOLAP, data.getBytes(StandardCharsets.UTF_8));
+        // cleanup
+        cleanupResource(objectKey);
+    }
+
+    @Parameters({"lambdaFunctionRuntime"})
+    @Test(description = "Calling OLAP to obtain the object,"
+            + "verify if the status code is 200 and the content is correct and checksum is properly retrieved.")
+    public void getObjectSimpleWithChecksum(String lambdaFunctionRuntime) {
+        // We only support passing back the headers in nodejs currently
+        if(!lambdaFunctionRuntime.contains("nodejs")){
+            throw new SkipException("Headers are currently passed only in nodejs");
+        }
+        // setup
+        String objectKey = UUID.randomUUID().toString();
+        setupResourceWithChecksum(objectKey, data);
+        var getObjectRequest = GetObjectRequest.builder()
+                .bucket(olapArn)
+                .checksumMode(ChecksumMode.ENABLED)
+                .key(objectKey)
+                .build();
+        // assert
+        assertSuccessfulResponse(getObjectRequest, data.getBytes(StandardCharsets.UTF_8));
+        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
+        Assert.assertNotNull(object.response().checksumCRC32());
         // cleanup
         cleanupResource(objectKey);
     }
