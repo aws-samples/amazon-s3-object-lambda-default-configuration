@@ -114,7 +114,7 @@ async function writeResponse (s3Client: S3, requestContext: GetObjectContext, tr
     const paramKey = headerToWgorParam(key);
     if (ParamsKeys.includes(paramKey) && value !== '' && value !== null) {
       if (paramKey === 'LastModified') {
-        WGORParams.set(paramKey, Date.parse(value));
+        WGORParams.set(paramKey, new Date(value));
       } else {
         WGORParams.set(paramKey, value);
       }
