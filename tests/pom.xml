@@ -26,7 +26,7 @@
                     </suiteXmlFiles>
                 </configuration>
             </plugin>
-            <!-- Compiler plugin configures the java version to be usedfor compiling
+            <!-- Compiler plugin configures the java version to be used for compiling
                 the code -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

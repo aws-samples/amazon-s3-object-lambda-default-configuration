@@ -14,9 +14,9 @@ import software.amazon.awssdk.services.cloudformation.waiters.CloudFormationWait
 public class Cleanup {
 
     @Parameters({"region"})
-    @Test(groups = "cleanup", dependsOnGroups = {"setup", "accessPoint"}, alwaysRun = true,
+    @Test(groups = "cleanup", dependsOnGroups = {"setup"}, alwaysRun = true,
           description = "Delete the created stack and assert it's deleted")
-    public void deletStack(ITestContext context, String region) {
+    public void deleteStack(ITestContext context, String region) {
         var sdkHelper = new SdkHelper();
         String stackName = (String) context.getAttribute(STACK_NAME_KEY);
         var cloudFormationClient = sdkHelper.getCloudFormationClient(region);

@@ -92,10 +92,12 @@ Resources:
         AllowedFeatures:
           - GetObject-Range
           - GetObject-PartNumber
+          - HeadObject-Range
+          - HeadObject-PartNumber
         CloudWatchMetricsEnabled:
           Ref: EnableCloudWatchMonitoring
         TransformationConfigurations:
-          - Actions: [ GetObject ]
+          - Actions: [ GetObject, ListObjects, ListObjectsV2, HeadObject ]
             ContentTransformation:
               AwsLambda:
                 FunctionArn: !GetAtt LambdaFunction.Arn

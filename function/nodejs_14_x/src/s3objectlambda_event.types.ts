@@ -8,16 +8,22 @@
 export interface S3ObjectLambdaEvent {
   readonly xAmzrequestId: string
   readonly getObjectContext: GetObjectContext
+  readonly listObjectsContext: BaseObjectContext
+  readonly listObjectsV2Context: BaseObjectContext
+  readonly headObjectContext: BaseObjectContext
   readonly configuration: Configuration
   readonly userRequest: UserRequest
   readonly userIdentity: UserIdentity
   readonly protocolVersion: string
 }
 
-export interface GetObjectContext {
-  readonly inputS3Url: string
+export interface GetObjectContext extends BaseObjectContext{
   readonly outputRoute: string
   readonly outputToken: string
+}
+
+export interface BaseObjectContext {
+  readonly inputS3Url: string
 }
 
 interface Configuration {

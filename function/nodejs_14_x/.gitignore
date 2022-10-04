@@ -3,3 +3,6 @@ node_modules/
 build
 dist/
 s3objectlambda.js
+.vscode/
+.idea/
+coverage
