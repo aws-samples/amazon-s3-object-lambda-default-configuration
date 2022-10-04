@@ -1,0 +1,27 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+
+<suite name="DefaultConfigIntegrationGetOnly" verbose="2">
+    <test name="IntegrationTestGetOnly">
+        <parameter name="region" value="${region}" />
+        <parameter name="templateUrl" value="${templateUrl}" />
+        <parameter name="s3BucketName" value="${s3BucketName}" />
+        <parameter name="supportingAccessPointName" value="${supportAccessPointName}"/>
+        <parameter name="lambdaFunctionS3BucketName" value="${lambdaFunctionS3BucketName}" />
+        <parameter name="lambdaFunctionS3Key" value="${lambdaFunctionS3Key}" />
+        <parameter name="lambdaFunctionRuntime" value="${lambdaFunctionRuntime}" />
+        <parameter name="createNewSupportingAccessPoint" value="{createNameSupportingAccessPoint}" />
+        <parameter name="lambdaVersion" value="{lambdaVersion}" />
+        <groups>
+            <run>
+                <include name="setup" />
+                <include name="accessPoint" />
+                <include name="cleanup" />
+            </run>
+        </groups>
+        <classes>
+            <class name="com.amazon.s3objectlambda.defaultconfig.SetupCloudFormationTest" />
+            <class name="com.amazon.s3objectlambda.defaultconfig.ObjectLambdaAccessPointTest" />
+            <class name="com.amazon.s3objectlambda.defaultconfig.Cleanup" />
+        </classes>
+    </test>
+</suite>
