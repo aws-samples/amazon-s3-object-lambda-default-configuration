@@ -80,7 +80,7 @@ jobs:
           distribution: 'adopt'
       - name: Build with Maven and run test against Java Lambda function
         if: steps.check_java_files.outputs.files_exists == 'true'
-        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_JAVA_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_JAVA_VERSION}} -DlambdaFunctionRuntime=java11
+        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_JAVA_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_JAVA_VERSION}} -DlambdaFunctionRuntime=java11 -Dsurefire.suiteXmlFiles=getonly.xml
         #Python Lambda Check
       - name: Check Python file existence
         id: check_python_files
@@ -112,7 +112,7 @@ jobs:
           distribution: 'adopt'
       - name: Build with Maven and run test against Python Lambda function
         if: steps.check_python_files.outputs.files_exists == 'true'
-        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_PYTHON_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_PYTHON_VERSION}} -DlambdaFunctionRuntime=python3.9
+        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_PYTHON_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_PYTHON_VERSION}} -DlambdaFunctionRuntime=python3.9 -Dsurefire.suiteXmlFiles=getonly.xml
 
       - name: Check Test Result Pass
         if: ${{ !failure() }}
