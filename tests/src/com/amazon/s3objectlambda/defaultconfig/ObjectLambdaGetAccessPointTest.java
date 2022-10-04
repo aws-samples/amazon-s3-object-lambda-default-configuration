@@ -52,7 +52,7 @@ public class ObjectLambdaGetAccessPointTest extends ObjectLambdaAccessPointTest 
     }
 
     @Parameters()
-    @Test(description = "Calling OLAP to obtain the object,"
+    @Test(enabled=false, description = "Calling OLAP to obtain the object,"
             + "verify if the status code is 200 and the content is correct and checksum is properly retrieved.")
     public void getObjectSimpleWithChecksum() {
         // setup
