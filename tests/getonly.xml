@@ -14,13 +14,13 @@
         <groups>
             <run>
                 <include name="setup" />
-                <include name="accessPoint" />
+                <include name="getAccessPoint" />
                 <include name="cleanup" />
             </run>
         </groups>
         <classes>
             <class name="com.amazon.s3objectlambda.defaultconfig.SetupCloudFormationTest" />
-            <class name="com.amazon.s3objectlambda.defaultconfig.ObjectLambdaAccessPointTest" />
+            <class name="com.amazon.s3objectlambda.defaultconfig.ObjectLambdaGetAccessPointTest" />
             <class name="com.amazon.s3objectlambda.defaultconfig.Cleanup" />
         </classes>
     </test>
