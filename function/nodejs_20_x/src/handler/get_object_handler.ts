@@ -1,13 +1,11 @@
 import { GetObjectContext, UserRequest } from '../s3objectlambda_event.types';
 import { makeS3Request, applyRangeOrPartNumber } from '../request/utils';
-import { AWSError } from 'aws-sdk/lib/error';
 import ErrorCode from '../error/error_code';
 import { Response, Headers } from 'node-fetch';
 import { getErrorResponse, getResponseForS3Errors } from '../error/error_response';
-import S3 from 'aws-sdk/clients/s3';
+import { S3Client, WriteGetObjectResponseCommand, WriteGetObjectResponseCommandOutput } from '@aws-sdk/client-s3';
 import { transformObject } from '../transform/s3objectlambda_transformer';
 import { validate } from '../request/validator';
-import { PromiseResult } from 'aws-sdk/lib/request';
 import getChecksum from '../checksum/checksum';
 import { headerToWgorParam, ParamsKeys } from '../response/param_transformer';
 
@@ -20,8 +18,8 @@ import { headerToWgorParam, ParamsKeys } from '../response/param_transformer';
  * 5. Sends the final transformed object back to Amazon S3 Object Lambda.
  */
 
-export default async function handleGetObjectRequest (s3Client: S3, requestContext: GetObjectContext, userRequest: UserRequest):
-Promise<PromiseResult<{}, AWSError> | null> {
+export default async function handleGetObjectRequest (s3Client: S3Client, requestContext: GetObjectContext, userRequest: UserRequest):
+Promise<WriteGetObjectResponseCommandOutput | null> {
   // Validate user request and return error if invalid
   const errorMessage = validate(userRequest);
   if (errorMessage != null) {
@@ -76,8 +74,8 @@ function getResponseHeaders (headers: Headers): Headers {
 /**
  * Send the transformed object back to Amazon S3 Object Lambda, by invoking the WriteGetObjectResponse API.
  */
-async function writeResponse (s3Client: S3, requestContext: GetObjectContext, transformedObject: Buffer,
-  headers: Headers, objectResponse: Response): Promise<PromiseResult<{}, AWSError>> {
+async function writeResponse (s3Client: S3Client, requestContext: GetObjectContext, transformedObject: Buffer,
+  headers: Headers, objectResponse: Response): Promise<WriteGetObjectResponseCommandOutput> {
   const { algorithm, digest } = getChecksum(transformedObject);
 
   const WGORParams = new Map<string, any>();
@@ -95,7 +93,7 @@ async function writeResponse (s3Client: S3, requestContext: GetObjectContext, tr
   });
 
   console.log('Sending transformed results to the Object Lambda Access Point');
-  return s3Client.writeGetObjectResponse({
+  const wgorCommand = new WriteGetObjectResponseCommand({
     RequestRoute: requestContext.outputRoute,
     RequestToken: requestContext.outputToken,
     StatusCode: objectResponse.status,
@@ -106,5 +104,7 @@ async function writeResponse (s3Client: S3, requestContext: GetObjectContext, tr
 
     },
     ...Object.fromEntries(WGORParams)
-  }).promise();
+  });
+
+  return s3Client.send(wgorCommand);
 }

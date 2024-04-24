@@ -57,7 +57,7 @@ Beside the bucket which you would like to process with Object Lambda, you need a
 
 Create a deployment package in an Amazon S3 bucket that has versioning enabled.
 
-1. Download the `s3objectlambda_deployment_package.zip` file under `function/node.js14.x/release`.
+1. Download the `s3objectlambda_deployment_package.zip` file under `function/node.js20.x/release`.
 2. Upload the Lambda function deployment package to any Amazon S3 bucket that supports versioning. You will use this S3 bucket name and object key while deploying the template.
 
 ## Usage
@@ -92,7 +92,7 @@ LambdaFunctionS3ObjectVersion=<object-version-id> \
 * `S3BucketName` takes the bucket name to use with S3 Object Lambda. The bucket should exist in the same AWS account and AWS Region that will deploy this template. The bucket should also [delegate access control to Access Points](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-points-policies.html#access-points-delegating-control).
 * `LambdaFunctionS3BucketName` takes the name of the Amazon S3 bucket where you have uploaded the Lambda function deployment package. The bucket should be in the same AWS Region as your function, but can be in a different AWS account. It should have versioning enabled.
 * `LambdaFunctionS3Key` takes the Amazon S3 object key of the Lambda function deployment package. Example: s3objectlambda_deployment_package.zip
-* `lambdaFunctionRuntime` takes the Lambda function run time. Example: nodejs14.x
+* `lambdaFunctionRuntime` takes the Lambda function run time. Example: nodejs20.x
 * `LambdaFunctionS3ObjectVersion` takes the object version id of the Lambda function deployment package.
 * `--capabilities CAPABILITY_IAM` is required as the template creates an IAM role for the Lambda function's execution.
 
@@ -153,10 +153,10 @@ You can clone the function and add your own transformation code to the following
 
 | Language | File                                                                                         | Method name             | Api           |
 | -------- | -------------------------------------------------------------------------------------------- | ----------------------- | ------------- |
-| NodeJS   | function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts                             | transformObject         | GetObject     |
-| NodeJS   | function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts                             | transformHeaders        | HeadObject    |
-| NodeJS   | function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts                             | transformListObjectsV1  | ListObjectsV1 |
-| NodeJS   | function/nodejs_14_x/src/transform/s3objectlambda_transformer.ts                             | transformListObjectsV2  | ListObjectsV2 |
+| NodeJS   | function/nodejs_20_x/src/transform/s3objectlambda_transformer.ts                             | transformObject         | GetObject     |
+| NodeJS   | function/nodejs_20_x/src/transform/s3objectlambda_transformer.ts                             | transformHeaders        | HeadObject    |
+| NodeJS   | function/nodejs_20_x/src/transform/s3objectlambda_transformer.ts                             | transformListObjectsV1  | ListObjectsV1 |
+| NodeJS   | function/nodejs_20_x/src/transform/s3objectlambda_transformer.ts                             | transformListObjectsV2  | ListObjectsV2 |
 | Java     | function/java11/src/main/java/com/example/s3objectlambda/transform/GetObjectTransformer.java | transformObjectResponse | GetObject     |
 | Python   | function/python_3_9/src/transform/transform.py                                               | transform_object        | GetObject     |
 

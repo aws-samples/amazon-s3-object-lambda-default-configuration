@@ -12,7 +12,7 @@ Description: >
 
 Mappings:
   LambdaRuntimeHandlerMapping:
-    nodejs14.x:
+    nodejs20.x:
       handler: s3objectlambda.handler
     python3.9:
       handler: s3objectlambda.handler
@@ -60,7 +60,7 @@ Parameters:
 
   LambdaFunctionRuntime:
     Type: String
-    AllowedValues: [ nodejs14.x, python3.9, java11 ]
+    AllowedValues: [ nodejs20.x, python3.9, java11 ]
     Description: Identifier for the Lambda function runtime
 
   EnableCloudWatchMonitoring:

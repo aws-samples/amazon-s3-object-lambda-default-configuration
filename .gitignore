@@ -2,3 +2,4 @@
 .idea
 tests/src/.gitkeep
 tests/target
+template/output
