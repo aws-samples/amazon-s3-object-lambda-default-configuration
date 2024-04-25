@@ -1,6 +1,6 @@
 import type { S3ObjectLambdaEvent } from './s3objectlambda_event.types';
 import handleGetObjectRequest from './handler/get_object_handler';
-import S3 from 'aws-sdk/clients/s3';
+import { S3Client } from '@aws-sdk/client-s3';
 import handleHeadObjectRequest from './handler/head_object_handler';
 import { ListObjectsHandler } from './handler/list_objects_base_handler';
 import {
@@ -14,7 +14,7 @@ performance. See {@link https://docs.aws.amazon.com/lambda/latest/dg/best-practi
  Lambda functions}
 for details.
 **/
-const S3Client = new S3();
+const s3 = new S3Client();
 
 export async function handler (event: S3ObjectLambdaEvent): Promise<null | any> {
   /*
@@ -29,7 +29,7 @@ export async function handler (event: S3ObjectLambdaEvent): Promise<null | any> 
    */
 
   if ('getObjectContext' in event) {
-    await handleGetObjectRequest(S3Client, event.getObjectContext, event.userRequest);
+    await handleGetObjectRequest(s3, event.getObjectContext, event.userRequest);
     return null;
   } else if ('headObjectContext' in event) {
     return handleHeadObjectRequest(event.headObjectContext, event.userRequest);

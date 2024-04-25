@@ -30,17 +30,17 @@ jobs:
         run: echo TEMPLATE_KEY=template_$(openssl rand -hex 8).yaml >> $GITHUB_ENV
       - name: Template Upload to S3
         run: aws s3 cp ./template/s3objectlambda_defaultconfig.yaml s3://${{ secrets.AWS_BUCKET_NAME }}/${{env.TEMPLATE_KEY}}
-      - name: Set up NodeJS 14
+      - name: Set up NodeJS 20
         uses: actions/setup-node@v1
         with:
-          node-version: '14.x'
+          node-version: '20.x'
       - name: Generate a random name for Lambda functions
         run: |
           echo LAMBDA_NODE_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
           echo LAMBDA_PYTHON_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
           echo LAMBDA_JAVA_KEY=function_$(openssl rand -hex 8).zip >> $GITHUB_ENV
       - name: Set up Node Lambda Function and upload to S3
-        working-directory: function/nodejs_14_x
+        working-directory: function/nodejs_20_x
         run: |
           npm install
           npm run-script build
@@ -53,7 +53,7 @@ jobs:
           java-version: '16'
           distribution: 'adopt'
       - name: Build with Maven and run test
-        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_NODE_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_VERSION}} -DlambdaFunctionRuntime=nodejs14.x
+        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_NODE_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_VERSION}} -DlambdaFunctionRuntime=nodejs20.x
         # Java Lambda Check
       - name: Check Java file existence
         id: check_java_files

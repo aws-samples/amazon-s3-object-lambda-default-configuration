@@ -1,9 +1,7 @@
-import { AWSError } from 'aws-sdk';
 import { Parser } from 'xml2js';
 import ErrorCode from './error_code';
 import { BaseObjectContext, GetObjectContext } from '../s3objectlambda_event.types';
-import S3 from 'aws-sdk/clients/s3';
-import { PromiseResult } from 'aws-sdk/lib/request';
+import { S3Client, WriteGetObjectResponseCommand, WriteGetObjectResponseCommandOutput } from '@aws-sdk/client-s3';
 import { Response, Headers } from 'node-fetch';
 import { IErrorResponse } from '../s3objectlambda_response.types';
 
@@ -11,18 +9,20 @@ import { IErrorResponse } from '../s3objectlambda_response.types';
  * Generates a response to Amazon S3 Object Lambda when there is an error
  * with a GET_OBJECT request.
  */
-export async function getErrorResponse (s3Client: S3, requestContext: GetObjectContext,
-  errorCode: ErrorCode, errorMessage: string, headers: Headers = new Headers()): Promise<PromiseResult<{}, AWSError>> {
+export async function getErrorResponse (s3Client: S3Client, requestContext: GetObjectContext,
+  errorCode: ErrorCode, errorMessage: string, headers: Headers = new Headers()): Promise<WriteGetObjectResponseCommandOutput> {
   console.log(`Returning an error [${errorCode}] ${errorMessage} to the Object Lambda Access Point`);
 
-  return s3Client.writeGetObjectResponse({
+  const wgorCommand = new WriteGetObjectResponseCommand({
     RequestRoute: requestContext.outputRoute,
     RequestToken: requestContext.outputToken,
     StatusCode: ERROR_TO_STATUS_CODE_MAP[errorCode],
     ErrorCode: errorCode,
     ErrorMessage: errorMessage,
     ...headers
-  }).promise();
+  });
+
+  return s3Client.send(wgorCommand);
 }
 
 /**
@@ -44,19 +44,21 @@ export function errorResponse (requestContext: BaseObjectContext,
 /**
  * Sends back the error that was received from S3 on a GET_OBJECT request
  */
-export async function getResponseForS3Errors (s3Client: S3, requestContext: GetObjectContext, objectResponse: Response,
-  headers: Headers, objectResponseBody: Buffer): Promise<PromiseResult<{}, AWSError>> {
+export async function getResponseForS3Errors (s3Client: S3Client, requestContext: GetObjectContext, objectResponse: Response,
+  headers: Headers, objectResponseBody: Buffer): Promise<WriteGetObjectResponseCommandOutput> {
   const objectResponseData = await new Parser().parseStringPromise(objectResponseBody);
   console.log(`Encountered an S3 Error, status code: ${objectResponse.status}. Forwarding this to the Object Lambda Access Point.`);
 
-  return s3Client.writeGetObjectResponse({
+  const wgorCommand = new WriteGetObjectResponseCommand({
     RequestRoute: requestContext.outputRoute,
     RequestToken: requestContext.outputToken,
     StatusCode: objectResponse.status,
     ErrorCode: objectResponseData.Code,
     ErrorMessage: `Received ${objectResponse.statusText} from the supporting Access Point.`,
     ...headers
-  }).promise();
+  });
+
+  return s3Client.send(wgorCommand);
 }
 
 /**
