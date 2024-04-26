@@ -16,7 +16,7 @@ Mappings:
       handler: s3objectlambda.handler
     python3.9:
       handler: s3objectlambda.handler
-    java11:
+    java17:
       handler: com.example.s3objectlambda.Handler::handleRequest
 Parameters:
   S3BucketName:
@@ -60,7 +60,7 @@ Parameters:
 
   LambdaFunctionRuntime:
     Type: String
-    AllowedValues: [ nodejs20.x, python3.9, java11 ]
+    AllowedValues: [ nodejs20.x, python3.9, java17 ]
     Description: Identifier for the Lambda function runtime
 
   EnableCloudWatchMonitoring:

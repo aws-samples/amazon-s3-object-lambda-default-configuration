@@ -7,7 +7,7 @@ a proxy, and requires no application changes.
 
 # About the Project
 
-This package contains an AWS CloudFormation template that helps you get started with [Amazon S3 Object Lambda](https://docs.aws.amazon.com/AmazonS3/latest/userguide/transforming-objects.html). The AWS CloudFormation template automatically creates relevant resources, configures IAM roles, and sets up an AWS Lambda function to handle requests from your S3 Object Lambda Access Point. The setup contains examples for Lambda function in Node.js, Java 11 and Python 3. To quickly get started, you can check out our [Getting Started](#getting-started).
+This package contains an AWS CloudFormation template that helps you get started with [Amazon S3 Object Lambda](https://docs.aws.amazon.com/AmazonS3/latest/userguide/transforming-objects.html). The AWS CloudFormation template automatically creates relevant resources, configures IAM roles, and sets up an AWS Lambda function to handle requests from your S3 Object Lambda Access Point. The setup contains examples for Lambda function in Node.js, Java 17 and Python 3. To quickly get started, you can check out our [Getting Started](#getting-started).
 
 # How it works
 
@@ -157,7 +157,7 @@ You can clone the function and add your own transformation code to the following
 | NodeJS   | function/nodejs_20_x/src/transform/s3objectlambda_transformer.ts                             | transformHeaders        | HeadObject    |
 | NodeJS   | function/nodejs_20_x/src/transform/s3objectlambda_transformer.ts                             | transformListObjectsV1  | ListObjectsV1 |
 | NodeJS   | function/nodejs_20_x/src/transform/s3objectlambda_transformer.ts                             | transformListObjectsV2  | ListObjectsV2 |
-| Java     | function/java11/src/main/java/com/example/s3objectlambda/transform/GetObjectTransformer.java | transformObjectResponse | GetObject     |
+| Java     | function/java17/src/main/java/com/example/s3objectlambda/transform/GetObjectTransformer.java | transformObjectResponse | GetObject     |
 | Python   | function/python_3_9/src/transform/transform.py                                               | transform_object        | GetObject     |
 
 

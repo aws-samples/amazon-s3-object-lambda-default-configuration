@@ -47,10 +47,10 @@ jobs:
           mkdir -p release
           npm run-script package
           echo LAMBDA_VERSION=$(aws s3api put-object --bucket ${{ secrets.AWS_BUCKET_NAME }} --key ${{env.LAMBDA_NODE_KEY}} --body release/s3objectlambda_deployment_package.zip --output json | jq -r '.VersionId' ) >> $GITHUB_ENV
-      - name: Set up JDK 16
+      - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
-          java-version: '16'
+          java-version: '17'
           distribution: 'adopt'
       - name: Build with Maven and run test
         run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_NODE_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_VERSION}} -DlambdaFunctionRuntime=nodejs20.x
@@ -59,28 +59,28 @@ jobs:
         id: check_java_files
         uses: andstor/file-existence-action@v1
         with:
-          files: "function/java11"
-      - name: Set up JDK 11
+          files: "function/java17"
+      - name: Set up JDK 17
         if: steps.check_java_files.outputs.files_exists == 'true'
         uses: actions/setup-java@v2
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'adopt'
       - name: Set up Java Lambda Function and upload to S3
         if: steps.check_java_files.outputs.files_exists == 'true'
-        working-directory: function/java11
+        working-directory: function/java17
         run: |
           mvn package
           echo LAMBDA_JAVA_VERSION=$(aws s3api put-object --bucket ${{ secrets.AWS_BUCKET_NAME }} --key ${{env.LAMBDA_JAVA_KEY}} --body target/S3ObjectLambdaDefaultConfigJavaFunction-1.0.jar --output json | jq -r '.VersionId' ) >> $GITHUB_ENV
-      - name: Set up JDK 16 to run test against Java Function
+      - name: Set up JDK 17 to run test against Java Function
         if: steps.check_java_files.outputs.files_exists == 'true'
         uses: actions/setup-java@v2
         with:
-          java-version: '16'
+          java-version: '17'
           distribution: 'adopt'
       - name: Build with Maven and run test against Java Lambda function
         if: steps.check_java_files.outputs.files_exists == 'true'
-        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_JAVA_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_JAVA_VERSION}} -DlambdaFunctionRuntime=java11 -Dsurefire.suiteXmlFiles=getonly.xml
+        run: mvn test -f tests/pom.xml -Dregion=${{ secrets.AWS_REGION }} -DtemplateUrl=https://${{ secrets.AWS_BUCKET_NAME }}.s3.${{ secrets.AWS_REGION}}.amazonaws.com/${{env.TEMPLATE_KEY}} -Ds3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3BucketName=${{ secrets.AWS_BUCKET_NAME }} -DlambdaFunctionS3Key=${{env.LAMBDA_JAVA_KEY}} -DcreateNewSupportingAccessPoint=true -DlambdaVersion=${{env.LAMBDA_JAVA_VERSION}} -DlambdaFunctionRuntime=java17 -Dsurefire.suiteXmlFiles=getonly.xml
         #Python Lambda Check
       - name: Check Python file existence
         id: check_python_files
@@ -104,11 +104,11 @@ jobs:
           zip ../release/s3objectlambda_deployment_package ./*/*.py -g
           cd ../
           echo LAMBDA_PYTHON_VERSION=$(aws s3api put-object --bucket ${{ secrets.AWS_BUCKET_NAME }} --key ${{env.LAMBDA_PYTHON_KEY}} --body release/s3objectlambda_deployment_package.zip --output json | jq -r '.VersionId' ) >> $GITHUB_ENV
-      - name: Set up JDK 16 to run tests against Python Function
+      - name: Set up JDK 17 to run tests against Python Function
         if: steps.check_python_files.outputs.files_exists == 'true'
         uses: actions/setup-java@v2
         with:
-          java-version: '16'
+          java-version: '17'
           distribution: 'adopt'
       - name: Build with Maven and run test against Python Lambda function
         if: steps.check_python_files.outputs.files_exists == 'true'
