@@ -8,9 +8,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import com.amazonaws.services.lambda.runtime.events.S3ObjectLambdaEvent;
 import com.amazonaws.services.s3.AmazonS3;
+import com.example.s3objectlambda.exception.InvalidUrlException;
 import com.example.s3objectlambda.exception.TransformationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +75,7 @@ public class GetObjectHandler implements RequestHandler {
         HttpResponse<InputStream> presignedResponse;
         try {
             presignedResponse = this.getS3ObjectResponse(this.s3ObjectLambdaEvent.inputS3Url());
-        } catch (URISyntaxException | IOException | InterruptedException e) {
+        } catch (URISyntaxException | IOException | InterruptedException | InvalidUrlException e) {
             this.logger.error("Error while getting the s3 object: " + e);
             this.responseHandler.writeErrorResponse("Error occurred while getting the object.",
                     Error.SERVER_ERROR);
@@ -136,26 +139,24 @@ public class GetObjectHandler implements RequestHandler {
 
 
     private HttpResponse<InputStream> getS3ObjectResponse(String s3PresignedUrl)
-            throws URISyntaxException, IOException, InterruptedException {
+        throws URISyntaxException, IOException, InterruptedException, InvalidUrlException {
         var httpRequestBuilder = HttpRequest.newBuilder(new URI(s3PresignedUrl));
         var userRequestHeaders = this.s3ObjectLambdaEvent.getUserRequest().getHeaders();
-        var headersToBePresigned = Arrays.asList(
-                "x-amz-checksum-mode",
-                "x-amz-request-payer",
-                "x-amz-expected-bucket-owner",
-                "If-Match",
-                "If-Modified-Since",
-                "If-None-Match",
-                "If-Unmodified-Since");
+
+        List<String> signedHeaders =
+            S3PresignedUrlParserHelper.retrieveSignedHeadersFromPresignedUrl(s3PresignedUrl);
+
+        System.out.println(s3PresignedUrl);
+        System.out.println(signedHeaders);
 
         for (var userRequestHeader : userRequestHeaders.entrySet()) {
-            if (headersToBePresigned.contains(userRequestHeader.getKey())) {
+            if (signedHeaders.contains(userRequestHeader.getKey())) {
                 httpRequestBuilder.header(userRequestHeader.getKey(), userRequestHeader.getValue());
             }
         }
-        var presignedResponse = this.httpClient.send(
-                httpRequestBuilder.GET().build(),
-                HttpResponse.BodyHandlers.ofInputStream());
-        return presignedResponse;
+
+        return this.httpClient.send(
+            httpRequestBuilder.GET().build(),
+            HttpResponse.BodyHandlers.ofInputStream());
     }
 }

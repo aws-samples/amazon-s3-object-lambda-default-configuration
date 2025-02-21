@@ -13,6 +13,7 @@ public enum Error {
     INVALID_REQUEST(400, "InvalidRequest"),
     INVALID_RANGE(416, "InvalidRange"),
     INVALID_PART(400, "InvalidPart"),
+    INVALID_URL(400, "InvalidUrl"),
     NO_SUCH_KEY(404, "NoSuchKey"),
     SERVER_ERROR(500, "LambdaRuntimeError");
 
