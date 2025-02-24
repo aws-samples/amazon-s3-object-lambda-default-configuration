@@ -31,14 +31,15 @@ public class S3PresignedUrlParserHelper {
         }
 
         for (String queryParam : query.split(QUERY_PARAM_DELIMETER)) {
-            String[] keyValue = queryParam.split(QUERY_PARAM_KEY_VALUE_DELIMETER, 2);
-            if (keyValue.length == 2 && keyValue[0].equals(X_AMZN_SIGNED_HEADERS)) {
-                String decodedValue = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8);
 
-                for (String value : decodedValue.split(X_AMZN_SIGNED_HEADERS_DELIMETER)) {
-                    System.out.println("EXTRACTED HEADER: " + value);
-                }
+            String[] keyValuePair = queryParam.split(QUERY_PARAM_KEY_VALUE_DELIMETER, 2);
+            if (keyValuePair.length != 2) {
+                continue;
+            }
 
+            String key = keyValuePair[0];
+            if (key.equals(X_AMZN_SIGNED_HEADERS)) {
+                String decodedValue = URLDecoder.decode(keyValuePair[1], StandardCharsets.UTF_8);
                 return Arrays.asList(decodedValue.split(X_AMZN_SIGNED_HEADERS_DELIMETER));
             }
         }

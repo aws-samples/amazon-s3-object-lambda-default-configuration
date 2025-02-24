@@ -137,26 +137,59 @@ public class GetObjectHandler implements RequestHandler {
         this.responseHandler.writeObjectResponse(presignedResponse, transformedObjectWithRange);
     }
 
+    private HttpRequest prepareHttpRequest(final String s3PresignedUrl)
+        throws URISyntaxException, InvalidUrlException {
 
-    private HttpResponse<InputStream> getS3ObjectResponse(String s3PresignedUrl)
-        throws URISyntaxException, IOException, InterruptedException, InvalidUrlException {
         var httpRequestBuilder = HttpRequest.newBuilder(new URI(s3PresignedUrl));
         var userRequestHeaders = this.s3ObjectLambdaEvent.getUserRequest().getHeaders();
 
+        // If a header is signed, then it must be included in the actual http call.
+        // Otherwise, the lambda will get a signature error response.
+        includeSignedHeadersToHttpRequest(s3PresignedUrl, userRequestHeaders, httpRequestBuilder);
+
+        // Some headers are not signed, but should be passed via a presigned url call to ensure desired behaviour.
+        includeUserHeadersToHttpRequest(userRequestHeaders, httpRequestBuilder);
+
+        return httpRequestBuilder.GET().build();
+    }
+
+    private static void includeUserHeadersToHttpRequest(
+        final Map<String, String> userRequestHeaders, HttpRequest.Builder httpRequestBuilder) {
+
+        var optionalHeaders = Arrays.asList(
+            "If-Match",
+            "If-Modified-Since",
+            "If-None-Match",
+            "If-Unmodified-Since");
+
+        for (var headerKey : optionalHeaders) {
+            if (userRequestHeaders.containsKey(headerKey)) {
+                httpRequestBuilder.header(headerKey, userRequestHeaders.get(headerKey));
+            }
+        }
+    }
+
+    private static void includeSignedHeadersToHttpRequest(
+        final String s3PresignedUrl, final Map<String, String> userRequestHeaders,
+        HttpRequest.Builder httpRequestBuilder) throws InvalidUrlException {
+
         List<String> signedHeaders =
             S3PresignedUrlParserHelper.retrieveSignedHeadersFromPresignedUrl(s3PresignedUrl);
-
-        System.out.println(s3PresignedUrl);
-        System.out.println(signedHeaders);
 
         for (var userRequestHeader : userRequestHeaders.entrySet()) {
             if (signedHeaders.contains(userRequestHeader.getKey())) {
                 httpRequestBuilder.header(userRequestHeader.getKey(), userRequestHeader.getValue());
             }
         }
+    }
+
+    private HttpResponse<InputStream> getS3ObjectResponse(String s3PresignedUrl)
+        throws URISyntaxException, IOException, InterruptedException, InvalidUrlException {
+
+        HttpRequest request = prepareHttpRequest(s3PresignedUrl);
 
         return this.httpClient.send(
-            httpRequestBuilder.GET().build(),
+            request,
             HttpResponse.BodyHandlers.ofInputStream());
     }
 }
