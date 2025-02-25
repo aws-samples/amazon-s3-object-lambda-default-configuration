@@ -1,5 +1,7 @@
 package com.example.s3objectlambda.request;
 
+import com.amazonaws.auth.internal.SignerConstants;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -8,7 +10,6 @@ import java.util.*;
 
 public class S3PresignedUrlParserHelper {
 
-    static final String X_AMZN_SIGNED_HEADERS = "X-Amz-SignedHeaders";
     static final String X_AMZN_SIGNED_HEADERS_DELIMETER = ";";
     static final String QUERY_PARAM_DELIMETER = "&";
     static final String QUERY_PARAM_KEY_VALUE_DELIMETER = "=";
@@ -30,7 +31,7 @@ public class S3PresignedUrlParserHelper {
             }
 
             String key = keyValuePair[0];
-            if (key.equals(X_AMZN_SIGNED_HEADERS)) {
+            if (key.equals(SignerConstants.X_AMZ_SIGNED_HEADER)) {
                 String decodedValue = URLDecoder.decode(keyValuePair[1], StandardCharsets.UTF_8);
                 return Arrays.asList(decodedValue.split(X_AMZN_SIGNED_HEADERS_DELIMETER));
             }
