@@ -2,6 +2,7 @@ package com.example.s3objectlambda.request;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -13,7 +14,6 @@ import java.util.Map;
 
 import com.amazonaws.services.lambda.runtime.events.S3ObjectLambdaEvent;
 import com.amazonaws.services.s3.AmazonS3;
-import com.example.s3objectlambda.exception.InvalidUrlException;
 import com.example.s3objectlambda.exception.TransformationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ public class GetObjectHandler implements RequestHandler {
         HttpResponse<InputStream> presignedResponse;
         try {
             presignedResponse = this.getS3ObjectResponse(this.s3ObjectLambdaEvent.inputS3Url());
-        } catch (URISyntaxException | IOException | InterruptedException | InvalidUrlException e) {
+        } catch (URISyntaxException | IOException | InterruptedException e) {
             this.logger.error("Error while getting the s3 object: " + e);
             this.responseHandler.writeErrorResponse("Error occurred while getting the object.",
                     Error.SERVER_ERROR);
@@ -138,7 +138,7 @@ public class GetObjectHandler implements RequestHandler {
     }
 
     private HttpRequest prepareHttpRequest(final String s3PresignedUrl)
-        throws URISyntaxException, InvalidUrlException {
+        throws MalformedURLException, URISyntaxException {
 
         var httpRequestBuilder = HttpRequest.newBuilder(new URI(s3PresignedUrl));
         var userRequestHeaders = this.s3ObjectLambdaEvent.getUserRequest().getHeaders();
@@ -171,7 +171,7 @@ public class GetObjectHandler implements RequestHandler {
 
     private static void includeSignedHeadersToHttpRequest(
         final String s3PresignedUrl, final Map<String, String> userRequestHeaders,
-        HttpRequest.Builder httpRequestBuilder) throws InvalidUrlException {
+        HttpRequest.Builder httpRequestBuilder) throws MalformedURLException {
 
         List<String> signedHeaders =
             S3PresignedUrlParserHelper.retrieveSignedHeadersFromPresignedUrl(s3PresignedUrl);
@@ -184,7 +184,7 @@ public class GetObjectHandler implements RequestHandler {
     }
 
     private HttpResponse<InputStream> getS3ObjectResponse(String s3PresignedUrl)
-        throws URISyntaxException, IOException, InterruptedException, InvalidUrlException {
+        throws URISyntaxException, IOException, InterruptedException {
 
         HttpRequest request = prepareHttpRequest(s3PresignedUrl);
 

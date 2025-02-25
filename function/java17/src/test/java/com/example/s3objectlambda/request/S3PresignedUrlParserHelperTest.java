@@ -1,11 +1,11 @@
 package com.example.s3objectlambda.request;
 
-import com.example.s3objectlambda.exception.InvalidUrlException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.net.MalformedURLException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,7 +57,7 @@ public class S3PresignedUrlParserHelperTest {
 
     @Test
     @DisplayName("Parse URL with checksum and host signed headers.")
-    void testParsePresignedUrlWithChecksumAndHost() throws InvalidUrlException {
+    void testParsePresignedUrlWithChecksumAndHost() throws MalformedURLException {
         List<String> signedHeaders = S3PresignedUrlParserHelper.retrieveSignedHeadersFromPresignedUrl(TEST_URL_1);
         assert signedHeaders != null;
         assertEquals(2, signedHeaders.size());
@@ -67,7 +67,7 @@ public class S3PresignedUrlParserHelperTest {
 
     @Test
     @DisplayName("Parse URL with host signed header.")
-    void testParsePresignedUrlWithHost() throws InvalidUrlException {
+    void testParsePresignedUrlWithHost() throws MalformedURLException {
         List<String> signedHeaders = S3PresignedUrlParserHelper.retrieveSignedHeadersFromPresignedUrl(TEST_URL_2);
         assert signedHeaders != null;
         assertEquals(1, signedHeaders.size());
@@ -76,7 +76,7 @@ public class S3PresignedUrlParserHelperTest {
 
     @Test
     @DisplayName("Parse URL with no signed headers.")
-    void testParsePresignedUrlWithNoSignedHeaders() throws InvalidUrlException {
+    void testParsePresignedUrlWithNoSignedHeaders() throws MalformedURLException {
         List<String> signedHeaders = S3PresignedUrlParserHelper.retrieveSignedHeadersFromPresignedUrl(TEST_URL_3);
         assert signedHeaders != null;
         assertEquals(0, signedHeaders.size());
@@ -86,7 +86,7 @@ public class S3PresignedUrlParserHelperTest {
     @DisplayName("Try parse malformed URL.")
     void testParseMalformedPresignedUrl() {
         assertThrows(
-            InvalidUrlException.class,
+            MalformedURLException.class,
             () -> S3PresignedUrlParserHelper.retrieveSignedHeadersFromPresignedUrl(TEST_URL_MALFORMED)
         );
     }

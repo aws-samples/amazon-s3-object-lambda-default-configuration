@@ -1,7 +1,5 @@
 package com.example.s3objectlambda.request;
 
-import com.example.s3objectlambda.exception.InvalidUrlException;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -16,15 +14,9 @@ public class S3PresignedUrlParserHelper {
     static final String QUERY_PARAM_KEY_VALUE_DELIMETER = "=";
 
     public static List<String> retrieveSignedHeadersFromPresignedUrl(
-        final String presignedUrl) throws InvalidUrlException {
+        final String presignedUrl) throws MalformedURLException {
 
-        URL url;
-        try {
-            url = new URL(presignedUrl);
-        } catch (MalformedURLException e) {
-            throw new InvalidUrlException("Could not parse URL exception.");
-        }
-
+        URL url = new URL(presignedUrl);
         String query = url.getQuery();
         if (query == null) {
             return Collections.emptyList();
