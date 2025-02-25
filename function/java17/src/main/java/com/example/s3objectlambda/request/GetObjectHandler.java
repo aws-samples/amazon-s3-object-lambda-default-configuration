@@ -25,6 +25,8 @@ import com.example.s3objectlambda.response.ResponseHandler;
 import com.example.s3objectlambda.transform.Transformer;
 import com.example.s3objectlambda.validator.RequestValidator;
 
+import static com.amazonaws.services.s3.Headers.*;
+
 /**
  * Handles a GetObject request, by performing the following steps:
  * 1. Validates the incoming user request.
@@ -157,10 +159,10 @@ public class GetObjectHandler implements RequestHandler {
         final Map<String, String> userRequestHeaders, HttpRequest.Builder httpRequestBuilder) {
 
         var optionalHeaders = Arrays.asList(
-            "If-Match",
-            "If-Modified-Since",
-            "If-None-Match",
-            "If-Unmodified-Since");
+            GET_OBJECT_IF_MATCH,
+            GET_OBJECT_IF_MODIFIED_SINCE,
+            GET_OBJECT_IF_NONE_MATCH,
+            GET_OBJECT_IF_UNMODIFIED_SINCE);
 
         for (var headerKey : optionalHeaders) {
             if (userRequestHeaders.containsKey(headerKey)) {
