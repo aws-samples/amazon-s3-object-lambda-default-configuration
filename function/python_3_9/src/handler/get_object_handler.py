@@ -3,23 +3,42 @@ import error
 import requests
 import transform
 from request import utils, validator
+from request.utils import get_signed_headers_from_url
 from response import MapperResponse, range_mapper, part_number_mapper
 
 
-def get_request_header(headers):
+def include_signed_headers(s3_presigned_url, user_headers, headers):
+    # headers are case-insensitive as per RFC 9110
+    signed_headers = get_signed_headers_from_url(s3_presigned_url)
+    for key, value in user_headers.items():
+        if key.lower() in signed_headers:
+            headers[key] = value
+
+
+def include_optional_headers(user_headers, headers):
+    # headers are case-insensitive as per RFC 9110
+    optional_headers = ['if-match', 'if-modified-since', 'if-none-match', 'if-unmodified-since']
+    for key, value in user_headers.items():
+        if key.lower() in optional_headers:
+            headers[key] = value
+
+
+def get_request_header(user_headers, s3_presigned_url):
     """
     Get all headers that should be included in the pre-signed S3 URL. We do not add headers that will be
      applied after transformation, such as Range.
-    :param headers: Headers from the GetObject request
+    :param user_headers: headers from the GetObject request
+    :param s3_presigned_url: presigned url
     :return: Headers to be sent with pre-signed-url
     """
-    new_headers = dict()
-    headers_to_be_presigned = ['x-amz-checksum-mode', 'x-amz-request-payer', 'x-amz-expected-bucket-owner', 'If-Match',
-                               'If-Modified-Since', 'If-None-Match', 'If-Unmodified-Since']
-    for key, value in headers.items():
-        if key in headers_to_be_presigned:
-            new_headers[key] = value
-    return new_headers
+    headers = dict()
+    include_signed_headers(s3_presigned_url, user_headers, headers)
+    include_optional_headers(user_headers, headers)
+
+    # Additionally, we need to filter out the "Host" header, as the client would retrieve the correct value from
+    # the endpoint.
+    headers = {k: v for k, v in headers.items() if k.lower() != "host"}
+    return headers
 
 
 def get_object_handler(s3_client, request_context, user_request):
@@ -38,7 +57,7 @@ def get_object_handler(s3_client, request_context, user_request):
 
     # Get the original object from Amazon S3
     s3_url = request_context["inputS3Url"]
-    request_header = get_request_header(user_request["headers"])
+    request_header = get_request_header(user_request["headers"], s3_url)
 
     object_response = requests.get(s3_url, headers=request_header)
 

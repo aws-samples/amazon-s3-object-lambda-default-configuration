@@ -3,6 +3,18 @@ from urllib.parse import parse_qsl
 
 PART_NUMBER = 'partNumber'
 RANGE = 'Range'
+SIGNED_HEADERS = 'X-Amz-SignedHeaders'
+
+
+def get_signed_headers_from_url(url):
+    """
+    Get list of signed headers from user request
+    :param url: url
+    :return: list of signed headers or empty list
+    """
+    signed_headers_as_str = get_query_param(url, SIGNED_HEADERS)
+    signed_headers = signed_headers_as_str.split(';') if signed_headers_as_str is not None else []
+    return list(map(lambda x: x.lower(), signed_headers))
 
 
 def get_part_number(user_request):
