@@ -149,10 +149,10 @@ public class GetObjectHandler implements RequestHandler {
 
         // If a header is signed, then it must be included in the actual http call.
         // Otherwise, the lambda will get a signature error response.
-        includeSignedHeadersToHttpRequest(s3PresignedUrl, userRequestHeaders, httpHeaders);
+        addSignedHeaders(s3PresignedUrl, userRequestHeaders, httpHeaders);
 
         // Some headers are not signed, but should be passed via a presigned url call to ensure desired behaviour.
-        includeUserHeadersToHttpRequest(userRequestHeaders, httpHeaders);
+        addOptionalHeaders(userRequestHeaders, httpHeaders);
 
         // Additionally, we need to filter out the "Host" header, as the client would retrieve the correct value from
         // the endpoint.
@@ -165,7 +165,7 @@ public class GetObjectHandler implements RequestHandler {
         return httpRequestBuilder.GET().build();
     }
 
-    private static void includeUserHeadersToHttpRequest(
+    private static void addOptionalHeaders(
         final Map<String, String> userRequestHeaders, Map<String, String> httpHeaders) {
 
         var optionalHeaders = Arrays.asList(
@@ -182,7 +182,7 @@ public class GetObjectHandler implements RequestHandler {
         }
     }
 
-    private static void includeSignedHeadersToHttpRequest(
+    private static void addSignedHeaders(
         final String s3PresignedUrl, final Map<String, String> userRequestHeaders,
         Map<String, String> httpHeaders) throws MalformedURLException {
 
