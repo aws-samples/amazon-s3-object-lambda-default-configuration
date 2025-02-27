@@ -9,6 +9,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -144,19 +145,28 @@ public class GetObjectHandler implements RequestHandler {
 
         var httpRequestBuilder = HttpRequest.newBuilder(new URI(s3PresignedUrl));
         var userRequestHeaders = this.s3ObjectLambdaEvent.getUserRequest().getHeaders();
+        var httpHeaders = new HashMap<String, String>();
 
         // If a header is signed, then it must be included in the actual http call.
         // Otherwise, the lambda will get a signature error response.
-        includeSignedHeadersToHttpRequest(s3PresignedUrl, userRequestHeaders, httpRequestBuilder);
+        addSignedHeaders(s3PresignedUrl, userRequestHeaders, httpHeaders);
 
         // Some headers are not signed, but should be passed via a presigned url call to ensure desired behaviour.
-        includeUserHeadersToHttpRequest(userRequestHeaders, httpRequestBuilder);
+        addOptionalHeaders(userRequestHeaders, httpHeaders);
+
+        // Additionally, we need to filter out the "Host" header, as the client would retrieve the correct value from
+        // the endpoint.
+        httpHeaders.forEach((key, value) -> {
+            if (!key.equalsIgnoreCase("host")) {
+                httpRequestBuilder.header(key, value);
+            }
+        });
 
         return httpRequestBuilder.GET().build();
     }
 
-    private static void includeUserHeadersToHttpRequest(
-        final Map<String, String> userRequestHeaders, HttpRequest.Builder httpRequestBuilder) {
+    private static void addOptionalHeaders(
+        final Map<String, String> userRequestHeaders, Map<String, String> httpHeaders) {
 
         var optionalHeaders = Arrays.asList(
             GET_OBJECT_IF_MATCH,
@@ -164,23 +174,24 @@ public class GetObjectHandler implements RequestHandler {
             GET_OBJECT_IF_NONE_MATCH,
             GET_OBJECT_IF_UNMODIFIED_SINCE);
 
-        for (var headerKey : optionalHeaders) {
-            if (userRequestHeaders.containsKey(headerKey)) {
-                httpRequestBuilder.header(headerKey, userRequestHeaders.get(headerKey));
+        optionalHeaders.replaceAll(String::toLowerCase);
+        for (var userRequestHeader : userRequestHeaders.entrySet()) {
+            if (optionalHeaders.contains(userRequestHeader.getKey().toLowerCase())) {
+                httpHeaders.putIfAbsent(userRequestHeader.getKey(), userRequestHeader.getValue());
             }
         }
     }
 
-    private static void includeSignedHeadersToHttpRequest(
+    private static void addSignedHeaders(
         final String s3PresignedUrl, final Map<String, String> userRequestHeaders,
-        HttpRequest.Builder httpRequestBuilder) throws MalformedURLException {
+        Map<String, String> httpHeaders) throws MalformedURLException {
 
         List<String> signedHeaders =
             S3PresignedUrlParserHelper.retrieveSignedHeadersFromPresignedUrl(s3PresignedUrl);
 
         for (var userRequestHeader : userRequestHeaders.entrySet()) {
-            if (signedHeaders.contains(userRequestHeader.getKey())) {
-                httpRequestBuilder.header(userRequestHeader.getKey(), userRequestHeader.getValue());
+            if (signedHeaders.contains(userRequestHeader.getKey().toLowerCase())) {
+                httpHeaders.putIfAbsent(userRequestHeader.getKey(), userRequestHeader.getValue());
             }
         }
     }

@@ -30,10 +30,12 @@ public class S3PresignedUrlParserHelper {
                 continue;
             }
 
-            String key = keyValuePair[0];
-            if (key.equals(SignerConstants.X_AMZ_SIGNED_HEADER)) {
+            String key = keyValuePair[0].toLowerCase();
+            if (key.equals(SignerConstants.X_AMZ_SIGNED_HEADER.toLowerCase())) {
                 String decodedValue = URLDecoder.decode(keyValuePair[1], StandardCharsets.UTF_8);
-                return Arrays.asList(decodedValue.split(X_AMZN_SIGNED_HEADERS_DELIMETER));
+                List<String> signedHeaders = Arrays.asList(decodedValue.split(X_AMZN_SIGNED_HEADERS_DELIMETER));
+                signedHeaders.replaceAll(String::toLowerCase);
+                return signedHeaders;
             }
         }
 
