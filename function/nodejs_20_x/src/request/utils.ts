@@ -10,9 +10,20 @@ import fetch, { Response } from 'node-fetch';
 // Query parameters names
 const RANGE = 'Range';
 const PART_NUMBER = 'partNumber';
+const X_AMZ_SIGNED_HEADERS = 'X-Amz-SignedHeaders';
+const X_AMZN_SIGNED_HEADERS_DELIMETER = ';';
 
 // Header constants
 export const CONTENT_LENGTH = 'content-length';
+
+/**
+ * Get list of signed headers from the presigned url
+ * @param url
+ */
+export function getSignedHeaders (url: string): string[] {
+  const queryParam = getQueryParam(url, X_AMZ_SIGNED_HEADERS);
+  return queryParam !== null ? queryParam.split(X_AMZN_SIGNED_HEADERS_DELIMETER) : [];
+}
 
 /**
  * Get the part number from the user request
@@ -103,27 +114,55 @@ function getQueryParam (url: string, name: string): string | null {
 }
 
 export async function makeS3Request (url: string, userRequest: UserRequest, method: 'GET' | 'HEAD'): Promise<Response> {
-  const requestHeaders = getRequestHeaders(userRequest.headers);
+  const requestHeaders = getRequestHeaders(userRequest.headers, url);
   // TODO: handle fetch errors
   return fetch(url, {
     method,
     headers: Object.fromEntries(requestHeaders)
   });
 }
+
+export function addOptionalHeaders (headersObj: object, httpHeaders: Map<string, string>): void {
+  let optionalHeaders = ['If-Match', 'If-Modified-Since', 'If-None-Match', 'If-Unmodified-Since'];
+  optionalHeaders = optionalHeaders.map(header => header.toLowerCase());
+
+  new Map(Object.entries(headersObj)).forEach((value: string, key: string) => {
+    if (optionalHeaders.includes(key.toLowerCase())) {
+      httpHeaders.set(key, value);
+    }
+  });
+}
+
+export function addSignedHeaders (headersObj: object, url: string, httpHeaders: Map<string, string>): void {
+  const signedHeaders = getSignedHeaders(url);
+  new Map(Object.entries(headersObj)).forEach((value: string, key: string) => {
+    if (signedHeaders.includes(key.toLowerCase())) {
+      httpHeaders.set(key, value);
+    }
+  });
+}
+
 /**
  * Get all headers that should be included in the pre-signed S3 URL. We do not add headers that will be
  * applied after transformation, such as Range.
  */
-export function getRequestHeaders (headersObj: object): Map<string, string> {
-  const headersMap: Map<string, string> = new Map();
-  const headersToBePresigned = ['x-amz-checksum-mode', 'x-amz-request-payer', 'x-amz-expected-bucket-owner', 'If-Match',
-    'If-Modified-Since', 'If-None-Match', 'If-Unmodified-Since'];
+export function getRequestHeaders (headersObj: object, url: string): Map<string, string> {
+  const httpHeaders: Map<string, string> = new Map();
 
-  new Map(Object.entries(headersObj)).forEach((value: string, key: string) => {
-    if (headersToBePresigned.includes(key)) {
-      headersMap.set(key, value);
+  // If a header is signed, then it must be included in the actual http call.
+  // Otherwise, the lambda will get a signature error response.
+  addSignedHeaders(headersObj, url, httpHeaders);
+
+  // Some headers are not signed, but should be passed via a presigned url call to ensure desired behaviour.
+  addOptionalHeaders(headersObj, httpHeaders);
+
+  // Additionally, we need to filter out the "Host" header, as the client would retrieve the correct value from
+  // the endpoint.
+  for (const key of httpHeaders.keys()) {
+    if (key.toLowerCase() === 'host') {
+      httpHeaders.delete(key);
     }
-  });
+  }
 
-  return headersMap;
+  return httpHeaders;
 }
