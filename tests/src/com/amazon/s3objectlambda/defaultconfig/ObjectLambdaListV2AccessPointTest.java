@@ -23,7 +23,7 @@ public class ObjectLambdaListV2AccessPointTest extends ObjectLambdaAccessPointTe
             ListObjectsV2Response originalObject = s3Client.listObjectsV2(listObjectsRequestS3);
             Assert.assertTrue(object.sdkHttpResponse().isSuccessful());
             // Check if the request is equal to one without OL
-            Assert.assertTrue(areEqualListObjectV2Responses(object, originalObject));
+            Assert.assertTrue(object.equalsBySdkFields(originalObject));
         } catch (Exception e) {
             Assert.fail("Unexpected Errors: " + e.getMessage());
         }
@@ -46,7 +46,7 @@ public class ObjectLambdaListV2AccessPointTest extends ObjectLambdaAccessPointTe
             && Objects.equals(response2.maxKeys(), response1.maxKeys()) && response2.hasCommonPrefixes() == response1.hasCommonPrefixes()
             && Objects.equals(response2.commonPrefixes(), response1.commonPrefixes())
             && Objects.equals(response2.encodingTypeAsString(), response1.encodingTypeAsString())
-            && Objects.equals(response2.keyCount(), response1.keyCount()) && Objects.equals(response2.continuationToken(), response1.continuationToken())
+            && Objects.equals(response2.keyCount(), response1.keyCount())
             && Objects.equals(response2.startAfter(), response1.startAfter());
     }
 
