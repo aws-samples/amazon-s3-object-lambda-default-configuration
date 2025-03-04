@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Test(groups = "listV2AccessPoint", dependsOnGroups = {"setup"})
@@ -26,6 +27,27 @@ public class ObjectLambdaListV2AccessPointTest extends ObjectLambdaAccessPointTe
         } catch (Exception e) {
             Assert.fail("Unexpected Errors: " + e.getMessage());
         }
+    }
+
+    private boolean areEqualListObjectV2Responses(Object obj1, Object obj2) {
+
+        if (obj1 == obj2) {
+            return true;
+        }
+        if (obj1 == null || obj2 == null) {
+            return false;
+        }
+        if (!(obj1 instanceof ListObjectsV2Response response1) || !(obj2 instanceof ListObjectsV2Response response2)) {
+            return false;
+        }
+        return Objects.equals(response2.isTruncated(), response1.isTruncated()) && response2.hasContents() == response1.hasContents()
+            && Objects.equals(response2.contents(), response1.contents()) && Objects.equals(response2.name(), response1.name())
+            && Objects.equals(response2.prefix(), response1.prefix()) && Objects.equals(response2.delimiter(), response1.delimiter())
+            && Objects.equals(response2.maxKeys(), response1.maxKeys()) && response2.hasCommonPrefixes() == response1.hasCommonPrefixes()
+            && Objects.equals(response2.commonPrefixes(), response1.commonPrefixes())
+            && Objects.equals(response2.encodingTypeAsString(), response1.encodingTypeAsString())
+            && Objects.equals(response2.keyCount(), response1.keyCount())
+            && Objects.equals(response2.startAfter(), response1.startAfter());
     }
 
     private void assertSuccessfulResponseContents(ListObjectsV2Request listObjectsRequestOLAP,
