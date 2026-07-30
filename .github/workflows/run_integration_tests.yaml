@@ -15,10 +15,11 @@ jobs:
       statuses: write
     steps:
       - name: Check out pull request code base
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{github.event.pull_request.head.sha}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
+          allow-unsafe-pr-checkout: true
       - name: Generate a Template Key name
         run: echo TEMPLATE_KEY=template_$(openssl rand -hex 8).yaml >> $GITHUB_ENV
       - name: Set up NodeJS 20
